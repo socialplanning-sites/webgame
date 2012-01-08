@@ -1,0 +1,18 @@
+-sprites
+-radar
+-camera-scrolling
+-map saving
+
+tile type:
+-grass
+-water
+-lava
+-obsidian
+-diamond
+-iron
+-dirt
+-rock[5]
+-wood floor
+-stone floor
+-metal floor
+-stone brick
