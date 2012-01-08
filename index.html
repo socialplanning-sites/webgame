@@ -157,8 +157,8 @@
             I.height = MAP_HEIGHT;
             I.draw = function(cam) {
 				cam.check();
-				for (i=cam.x;i<MAP_WIDTH; i++){
-					for (j=cam.y;j<MAP_HEIGHT; j++){
+				for (i=cam.x;i<cam.x+cam.width; i++){
+					for (j=cam.y;j<cam.y+cam.height; j++){
 						I.tiles[i][j].draw(cam);
 					}
 				}
