@@ -6,7 +6,7 @@
     <script language="javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type="text/javascript"></script><script language="javascript" src="javascripts/jquery.hotkeys.js" type="text/javascript"></script><script language="javascript" src="javascripts/key_status.js" type="text/javascript"></script><script language="javascript" src="javascripts/util.js" type="text/javascript"></script><script language="javascript" src="javascripts/sprite.js" type="text/javascript"></script><script language="javascript" src="javascripts/sound.js" type="text/javascript"></script>
   </head>
   <body>
-    <h1>Hit H for controls. </h1>
+    <h1>M= Mode | Space= shoot/place block | Shift= center camera on player/cursor </h1>
     <script type='text/javascript'>
       //<![CDATA[
         var CANVAS_WIDTH = 900;
@@ -27,49 +27,39 @@
 		var obsidiansprite = Sprite("obsidian");
 		var mossysprite = Sprite("mossy");
 		var stonesprite = Sprite("stone");
-		var edsprite = Sprite("cursor");
 		Mode = 1;
 		var playerBullets = [];
 		//var keyboard = [];
 		//for (l=0;l<10;l++){keyboard.push(akey(keychart[l]));}
 
-		var canX;
-        var canY;
-        var mouseIsDown = 0;
 			
-		function akey(k) {  //k,wkey?
+		function akey(k) {
 		    k = k || "space";
-			this.key =k;
-			this.aflag=false;
-			this.check= function(){
-				if (keydown[this.key]) { 
-					this.aflag=true;
+			aflag=false;
+			check= function(){
+				if (keydown[k]) { 
+					aflag=true;
 					return false;
 				}
-				if((!keydown[this.key]) && (this.aflag==true)){
-					this.aflag=false;
+				if((!keydown[k]) && (aflag==true)){
+					aflag=false;
 					return true;
 				}
 		    };
 			return this;
 		}
 		
-		
-		var savekey=new akey("o");
-		var loadkey=new akey("l");
-		var wkey=new akey("w");
-		var aakey=new akey("a");
-		var skey=new akey("s");
-		var dkey=new akey("d");
-	    var upkey=new akey("up");
-		var rightkey=new akey("right");
-		var downkey=new akey("down");
-		var leftkey=new akey("left");
-		var modekey=new akey("m");
-		var nkey=new akey("n");
-		var shiftkey=new akey("shift");
-		var helpkey=new akey("h");
-		var slowkey=new akey("b");
+		var wkey=akey("w");
+		var aakey=akey("a");
+		var skey=akey("s");
+		var dkey=akey("d");
+	    var upkey=akey("up");
+		var rightkey=akey("right");
+		var downkey=akey("down");
+		var leftkey=akey("left");
+		var modekey=akey("m");
+		var nkey=akey("n");
+		var shiftkey=akey("shift");
 		
 		var camera = {
 		    x: 0,
@@ -101,7 +91,7 @@
 			}
 		};
 				
-        var bColors = ["#008000","#006400", "#FF4500", "#000080", "#696969", "#800080", "#808000", "#A52A2A", "#8B4513", "#FFDEAD", "#FFFF40","#000080" , "#FFFF80"];
+        var bColors = ["#000080","#FFC000", "#FFC040", "#FFC060", "#FFC080", "#FFD700", "#FFC0C0", "#FFC0FF", "#FFFF00", "#FFFF20", "#FFFF40", "#FFFF60", "#FFFF80"];
 		function makeNewTile() { 
 		    var tile = {
                 width: 16,
@@ -114,11 +104,11 @@
 				    if(this.data==0){
 					   grasssprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.data==1){
-					   darkgrasssprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					   watersprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.data==2){
 					   lavasprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.data==3){
-					   watersprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					   rocksprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.data==4){
 					   stonesprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.data==5){
@@ -130,7 +120,7 @@
 					}else if(this.data==8){
 					   dirtsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.data==9){
-					   crystalsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16); //todo: duplicate! add new type
+					   rocksprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.data==10){
 					   crystalsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.data==11){
@@ -160,22 +150,22 @@
 		  getKeys: function(merp) {
 			  if(keydown.left) {
 			    this.dir=3;
-			    if (merp.canWalk([this.x-1],[this.y])) {this.x -= 1;}
+			    if (merp.tiles[this.x-1][this.y].data==0) {this.x -= 1;}
 			  }
 			
 			  if(keydown.right) {
 			    this.dir=1;
-				if (merp.canWalk([this.x+2],[this.y])) {this.x += 1;}
+				if (merp.tiles[this.x+2][this.y].data==0) {this.x += 1;}
 			  }
 			  
 			  if(keydown.up) {
 			    this.dir=0;
-				if (merp.canWalk([this.x],[this.y-1])) {this.y -= 1;}
+				if (merp.tiles[this.x][this.y-1].data==0) {this.y -= 1;}
 			  }
 			
 			  if(keydown.down) {
 			    this.dir=2;
-				if (merp.canWalk([this.x],[this.y+2])) {this.y += 1;}
+				if (merp.tiles[this.x][this.y+2].data==0) {this.y += 1;}
 			  }
 			  this.x = this.x.clamp(0, MAP_WIDTH-1);
 			  this.y = this.y.clamp(0, MAP_HEIGHT-1);
@@ -187,7 +177,6 @@
           color: "#00A",
           x: 1,
           y: 1,
-		  slow: false,
 		  size: 1, //TODO: add for loops to draw, placement to make larger brush size, center it?
 		  type: 1,
           width: 16,
@@ -196,11 +185,11 @@
             	    if(this.type==0){
 					   grasssprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.type==1){
-					   darkgrasssprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					   watersprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.type==2){
 					   lavasprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.type==3){
-					   watersprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					   rocksprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.type==4){
 					   stonesprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.type==5){
@@ -212,63 +201,36 @@
 					}else if(this.type==8){
 					   dirtsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.type==9){
-					   crystalsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					   rocksprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.type==10){
-					   crystalsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16); //todo duplicate
+					   crystalsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.type==11){
 					   darkgrasssprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else{
 				       canvas.fillStyle = bColors[this.data]; 
 					   canvas.fillRect((this.x-cam.x)*this.width, (this.y-cam.y)*this.height, this.width, this.height);
 					}
-					edsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
           },
 		  getKeys: function() {
-		  	  if(nkey.check()) { 
+		  	  if(shiftkey.check()) { 
 				  this.type++;
-				  if (this.type > 9) {this.type=0;}
+				  if (this.type > 11) {this.type=0;}
 			  }
-			  
-			  if(slowkey.check()) {
-				this.slow=!this.slow;
-			  }
-			  
-			  if (this.slow) {
-			  	if(leftkey.check()) {
-					this.x -= 1;
-				  }
-				
-				  if(rightkey.check()) {
-					this.x += 1;
-				  }
-				  
-				  if(upkey.check()) {
-					this.y -= 1;
-				  }
-				
-				  if(downkey.check()) {
-					this.y += 1;
-				  }
-				  
-
-				  
-			  }else{
 			
-				  if(keydown.left) {
-					this.x -= 1;
-				  }
-				
-				  if(keydown.right) {
-					this.x += 1;
-				  }
-				  
-				  if(keydown.up) {
-					this.y -= 1;
-				  }
-				
-				  if(keydown.down) {
-					this.y += 1;
-				  }
+			  if(keydown.left) {
+				this.x -= 1;
+			  }
+			
+			  if(keydown.right) {
+				this.x += 1;
+			  }
+			  
+			  if(keydown.up) {
+				this.y -= 1;
+			  }
+			
+			  if(keydown.down) {
+				this.y += 1;
 			  }
 			  this.x = this.x.clamp(0, MAP_WIDTH-1);
 			  this.y = this.y.clamp(0, MAP_HEIGHT-1);
@@ -301,45 +263,27 @@
 				}
 			};
 		    I.saveTiles = function (name) {
-			    //var myString = JSON.stringify(I.tiles); //!?!
-				var tempstring= "";
-				for (i=0;i<MAP_WIDTH; i++){
-					for (j=0;j<MAP_HEIGHT; j++){
-					    /*tempo=" ";
-						if (I.tiles[i][j].data <10)
-						{
-						    tempo+=I.tiles[i][j].data;
-							tempstring = tempstring +tempo;
-						}else*/ {tempstring = tempstring +I.tiles[i][j].data;}
-						//tempstring += ","
-					}
-				}
-				localStorage.setItem(name, tempstring);
-			    //alert (tempstring);
+			    var myString = JSON.stringify(I.tiles); //!?!
+				localStorage.setItem(name, myString);
 			};
 		    I.loadTiles = function (name) {
-				tempstring=localStorage.getItem(name);
-				for (i=0;i<MAP_WIDTH; i++){
-					for (j=0;j<MAP_HEIGHT; j++){
-						I.tiles[i][j].data = tempstring[j+MAP_HEIGHT*i];
-					}
-				}
+				poop=localStorage.getItem(name);
+				var myObject = JSON.parse(poop);
+				I.tiles=myObject;
 			};
 		    I.setTile = function (x,y,data) {
 		       I.tiles[x][y].data = data;
 			};
 		    I.canWalk = function (x,y) {
-		      if ((I.tiles[x][y].data ==0)  || (I.tiles[x][y].data ==1 ) || (I.tiles[x][y].data ==4) || (I.tiles[x][y].data ==6)|| (I.tiles[x][y].data ==9)) {
+		      if (I.tiles[x][y].data ==0) {
 				return true;
 			  }else {return false;}
 		    };
 			I.drawRadar= function (cam,x,y) {
 				cam.check();
-				for (i=0;i<MAP_WIDTH; i++){
-					for (j=0;j<MAP_HEIGHT; j++){
-						  canvas.fillStyle = bColors[I.tiles[i][j].data];
-						  canvas.fillRect(x+i*2, y+j*2, 2, 2);
-          
+				for (i=cam.x;i<cam.x+cam.width; i++){
+					for (j=cam.y;j<cam.y+cam.height; j++){
+						//TODO: draw pixel at x+i,y+j or col color
 					}
 				}
 			};
@@ -385,13 +329,13 @@
             I.active = I.active && I.inBounds();
 			if((I.x>MAP_WIDTH-1) || (I.y>MAP_HEIGHT-1) || (I.x<0) || (I.y<0)) {
 				I.active=false;
-			}else if(!merp.canWalk([I.x],[I.y])) {I.active=false;} //todo:play a ding sound, change to merp.canflyover?
+			}else if(merp.tiles[I.x][I.y].data>0) {I.active=false;} //todo:play a ding sound
 			
           };
         
           I.explode = function() {
             this.active = false;
-            // TODO: Add an explosion graphic
+            // Extra Credit: Add an explosion graphic
           };
 		  
       
@@ -454,57 +398,8 @@
         var canvas = canvasElement.get(0).getContext("2d");
         canvasElement.appendTo('body');
 		
-		canvasElement.get(0).addEventListener("mousemove", mouseXY, false);
-		canvasElement.get(0).addEventListener("mousedown", mouseDown, false);
-
-		/*canvasElement.get(0).addEventListener("touchstart", touchDown, false);
-		canvasElement.get(0).addEventListener("touchmove", touchXY, true);   //TODO: Implement touch screen functions
-        canvasElement.get(0).addEventListener("touchend", touchUp, false);*/
- 
-		document.body.addEventListener("mouseup", mouseUp, false);
-		//document.body.addEventListener("touchcancel", touchUp, false);
-		
 		//canvas.globalAlpha = 0.85;//todo: something with this
 		
-		
-		function mouseXY(e) {
-			if (!e) var e = event;
-			canX = e.pageX - canvas.offsetLeft;
-			canY = e.pageY - canvas.offsetTop;
-			//alert("cooon");
-			//showPos();
-		}
-		
-		function touchXY(e) { //touchsreen
-		if (!e) var e = event;
-		e.preventDefault();
-		canX = e.targetTouches[0].pageX - can.offsetLeft;
-		canY = e.targetTouches[0].pageY - can.offsetTop;
-		showPos();
-		}
-		
-		function mouseUp() {
-		mouseIsDown = 0;
-		mouseXY();
-		}
-
-		function touchUp() {
-		mouseIsDown = 0;
-		// no touch to track, so just show state
-		//do something.
-		}
-
-		function mouseDown() {
-		mouseIsDown = 1;
-		mouseXY();
-		cunt="X" +canX + "Y"+canY;
-		alert (canX);
-		}
-
-		function touchDown() {
-		mouseIsDown = 1;
-		//do something();
-		}
         
         setInterval(function() {
           update();
@@ -525,11 +420,11 @@
 				}
 					
 			 }
-			  if(shiftkey.check()) { 
+			  /*if(shiftkey.check()) { 
 			  if (Mode==0) {  camera.center(player); }
 			  if (Mode==1) {  camera.center(edcursor); }
-			  }
-			  //if(hkey.check()) {alert("NO HELP FOR YOU");}
+			  }*/
+			  //if(keyboard[0].check()) {alert(keyboard.length);}
 		    if (true){ //camera mode
 			 			
 			  if(keydown.a) {
@@ -557,17 +452,13 @@
 			  if(keydown.space) {
 				maps[0].setTile(edcursor.x,edcursor.y,edcursor.type);
 			  }
-			  if(savekey.check()) {
+			  if(keydown.h) {
 				maps[0].saveTiles("edsmap");
 			  }
 			  			  
-			  if(loadkey.check()) {
+			  if(keydown.l) {
 				maps[0].loadTiles("edsmap");
 			  }
-			  
-			  if(helpkey.check()){
-			    alert("Arrow keys = move cursor, B = toggle speed, Space = Place block, N = switch block, Shift= Center Camera on cursor, M= switch to player mode, O = save map, L= loadmap");
-			 }
 			  
 			  edcursor.getKeys();
 		  }else if(Mode==0) {
@@ -576,9 +467,6 @@
 				  player.shoot();
 			  }
 			  camera.center(player);
-			  if(helpkey.check()){
-			    alert("Arrow keys = move player, Space = shoot, M= switch to edit mode");
-			 }
 		  }
         
 			  playerBullets.forEach(function(bullet) {
@@ -607,7 +495,7 @@
         
         player.shoot = function() {
           if (playerBullets.length>9) {return;}
-		  //Sound.play("shoot");
+		  Sound.play("shoot");
         
           var bulletPosition = this.midpoint();
 		  bulletPosition.x=this.x;
@@ -634,7 +522,7 @@
 		  
 		 maps.forEach(function(imap) {
             imap.draw(camera);
-			imap.drawRadar(camera, 638, 466);
+			imap.drawRadar(camera, 728, 100);
          });
 		 
 		 
