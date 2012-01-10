@@ -1,11 +1,21 @@
-
-		    I.saveMap = function (name) {
-			    var myString = JSON.stringify(I.tiles); //!?!
-				localStorage.setItem(name, myString);
-			}
-		    loadMap = function (name) {
-				poop=localStorage.getItem(name);
-				var myObject = JSON.parse(poop);
-				return myObject;
-			}
-			
+-fix collison
+-learn inheritance, use inheritance unit=>player=>NPC=>enemy
+    -basic two waypoint/random wander AI, text
+-menus
+  -item
+  -status
+  -equip
+-sword/tool swing/collision, breakable blocks
+-bombs, timed like lufia II?
+-explosive barrels, how does Map handle objects at all, does it?
+	maybe the map is just tiles/walls, barrels, players, npcs, enemeis all inherit from unit
+	search all units on map each frame and update/check collision
+-in edit mode:
+ --undo
+ --rect selection, outline or fill
+ -fill option?
+ -get map name to save as
+ -
+ 
+-slow the bear down, have a "number of button presses before move him one tile" = speed basically.  eventually make it how many ticks button held.
+ 

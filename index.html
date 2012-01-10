@@ -33,8 +33,8 @@
 		//var keyboard = [];
 		//for (l=0;l<10;l++){keyboard.push(akey(keychart[l]));}
 
-		var canX;
-        var canY;
+		var canX=[];
+        var canY=[];
         var mouseIsDown = 0;
 			
 		function akey(k) {  //k,wkey?
@@ -70,6 +70,7 @@
 		var shiftkey=new akey("shift");
 		var helpkey=new akey("h");
 		var slowkey=new akey("b");
+		var cmousekey=new akey("v");
 		
 		var camera = {
 		    x: 0,
@@ -188,6 +189,7 @@
           x: 1,
           y: 1,
 		  slow: false,
+		  mouse: false,
 		  size: 1, //TODO: add for loops to draw, placement to make larger brush size, center it?
 		  type: 1,
           width: 16,
@@ -233,6 +235,12 @@
 				this.slow=!this.slow;
 			  }
 			  
+			  if(cmousekey.check()) {
+				this.mouse=!this.mouse;
+			  }
+			  
+			  
+			  
 			  if (this.slow) {
 			  	if(leftkey.check()) {
 					this.x -= 1;
@@ -249,8 +257,6 @@
 				  if(downkey.check()) {
 					this.y += 1;
 				  }
-				  
-
 				  
 			  }else{
 			
@@ -281,8 +287,8 @@
 			var j = 0;
 		    I.active = true;
             I.color = "#00A";
-            I.tiles = new Array(120);
-			for( i=0; i<MAP_WIDTH; i++ ) { I.tiles[i] = new Array(80); }
+            I.tiles = new Array(MAP_WIDTH);
+			for( i=0; i<MAP_WIDTH; i++ ) { I.tiles[i] = new Array(MAP_HEIGHT); }
 		    for (i=0;i<MAP_WIDTH; i++){
 		        for (j=0;j<MAP_HEIGHT; j++){
 					I.tiles[i][j]= makeNewTile();
@@ -469,9 +475,11 @@
 		
 		function mouseXY(e) {
 			if (!e) var e = event;
-			canX = e.pageX - canvas.offsetLeft;
-			canY = e.pageY - canvas.offsetTop;
-			//alert("cooon");
+			canX = e.pageX - canvasElement.get(0).offsetLeft;
+			canY = e.pageY - canvasElement.get(0).offsetTop;
+			//alert("mousemoved");
+			
+			//alert(canX);
 			//showPos();
 		}
 		
@@ -497,8 +505,11 @@
 		function mouseDown() {
 		mouseIsDown = 1;
 		mouseXY();
-		cunt="X" +canX + "Y"+canY;
-		alert (canX);
+		tx=Math.floor(canX/16);
+		ty=Math.floor(canY/16);
+		punt="X: " +tx + " "+"Y: "+ty;
+		
+		//alert (punt);
 		}
 
 		function touchDown() {
@@ -511,7 +522,7 @@
           draw();
         }, 1000/FPS);
 		
-	
+	//------------MAIN-----------------------------------------
         function update() {
 		    if(modekey.check()) {
 				if (Mode==0) {
@@ -566,8 +577,16 @@
 			  }
 			  
 			  if(helpkey.check()){
-			    alert("Arrow keys = move cursor, B = toggle speed, Space = Place block, N = switch block, Shift= Center Camera on cursor, M= switch to player mode, O = save map, L= loadmap");
+			    alert("Arrow keys = move cursor, B = toggle speed, Space = Place block, V = Mouse mode toggle, N = switch block, Shift= Center Camera on cursor, M= switch to player mode, O = save map, L= loadmap");
 			 }
+			 
+			 if (edcursor.mouse) {
+				edcursor.x=Math.round(canX/16)+camera.x;
+				edcursor.y=Math.round(canY/16)+camera.y;
+				if(mouseIsDown){
+				  maps[0].setTile(edcursor.x,edcursor.y,edcursor.type)
+				}
+			}
 			  
 			  edcursor.getKeys();
 		  }else if(Mode==0) {
@@ -634,7 +653,7 @@
 		  
 		 maps.forEach(function(imap) {
             imap.draw(camera);
-			imap.drawRadar(camera, 638, 466);
+			imap.drawRadar(camera, 570, 466);
          });
 		 
 		 
