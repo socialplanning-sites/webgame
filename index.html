@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
   <head>
-    <title>Oh also W,A,S,D moves the camera.</title>
+    <title>Oh also arrow keys move the camera.</title>
     <link href="/stylesheets/screen.css" media="all" rel="stylesheet" type="text/css"/>
     <script language="javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type="text/javascript"></script><script language="javascript" src="javascripts/jquery.hotkeys.js" type="text/javascript"></script><script language="javascript" src="javascripts/key_status.js" type="text/javascript"></script><script language="javascript" src="javascripts/util.js" type="text/javascript"></script><script language="javascript" src="javascripts/sprite.js" type="text/javascript"></script><script language="javascript" src="javascripts/sound.js" type="text/javascript"></script>
   </head>
@@ -18,28 +18,45 @@
 		var darkgrasssprite = Sprite("darkgrass");
 		var grasssprite = Sprite("grass");
 		var watersprite = Sprite("water");
-		var lavasprite = Sprite("lava");
+		var lavasprite=[];
+  		lavasprite[0] = Sprite("lava");
+		lavasprite[1] = Sprite("lava1");
+		lavasprite[2] = Sprite("lava2");
+		lavasprite[3] = Sprite("lava3");
+		lavasprite[4] = Sprite("lava4");
 		var rocksprite = Sprite("stone2");
+		var stonebricksprite = Sprite("stonewall");
 		var bricksprite = Sprite("brick");
 		var dirtsprite = Sprite("dirt");
+		var woodsprite = Sprite("wood");
 		var crystalsprite = Sprite("crystalfloor");
 		var mudsprite = Sprite("mud");
 		var obsidiansprite = Sprite("obsidian");
 		var mossysprite = Sprite("mossy");
 		var stonesprite = Sprite("stone");
+		
+		var claysprite = Sprite("clay");
+		var pedastalsprite = Sprite("pedastal");
+		var wtfsprite = Sprite("wtf");
+		var cobblesprite = Sprite("cobblestone");
+		var plankssprite = Sprite("woodplanks");
 		var edsprite = Sprite("cursor");
+		var shroomsprite = Sprite("shroom");
 		Mode = 1;
 		var playerBullets = [];
 		//var keyboard = [];
 		//for (l=0;l<10;l++){keyboard.push(akey(keychart[l]));}
-
+		var NUM_TILES=17;
 		var canX=[];
 		var canY=[];
         var canvasElement = $("<canvas width='" + CANVAS_WIDTH + 
           "' height='" + CANVAS_HEIGHT + "'></canvas");
         var canvas = canvasElement.get(0).getContext("2d");
         canvasElement.appendTo('body');
-
+        //todo:  find some way to put this in map or tile?
+        var tileani=0;
+		var anicount=0;
+		var anirate=10;
 		
 		//canvas.globalAlpha = 0.85;//todo: something with this
 	
@@ -140,14 +157,14 @@
 		
 		var savekey=new akey("o");
 		var loadkey=new akey("l");
-		var wkey=new akey("w");
-		var aakey=new akey("a");
-		var skey=new akey("s");
-		var dkey=new akey("d");
-	    var upkey=new akey("up");
-		var rightkey=new akey("right");
-		var downkey=new akey("down");
-		var leftkey=new akey("left");
+		var upkey=new akey("w");
+		var leftkey=new akey("a");
+		var downkey=new akey("s");
+		var rightkey=new akey("d");
+	    var wkey=new akey("up");
+		var dkey=new akey("right");
+		var skey=new akey("down");
+		var aakey=new akey("left");
 		var modekey=new akey("m");
 		var nkey=new akey("n");
 		var shiftkey=new akey("shift");
@@ -185,7 +202,9 @@
 				return fy-this.y;
 			}
 		};
-				
+			
+
+	    
         var bColors = ["#008000","#006400", "#FF4500", "#000080", "#696969", "#800080", "#808000", "#A52A2A", "#8B4513", "#FFDEAD", "#FFFF40","#000080" , "#FFFF80"];
 		function makeNewTile() { 
 		    var tile = {
@@ -193,6 +212,7 @@
 				height: 16,
 				x: 0,
 				y: 0,
+				ani:0,
 				color: "#FFC020",
 				data: 0,
 				draw: function(cam) { 
@@ -201,7 +221,7 @@
 					}else if(this.data==1){
 					   darkgrasssprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.data==2){
-					   lavasprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					   lavasprite[tileani].draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.data==3){
 					   watersprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.data==4){
@@ -213,14 +233,26 @@
 					}else if(this.data==7){
 					   bricksprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.data==8){
-					   dirtsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					   woodsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.data==9){
 					   crystalsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16); //todo: duplicate! add new type
 					}else if(this.data==10){
-					   crystalsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					   mossysprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.data==11){
-					   darkgrasssprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
-					}else{
+					   stonebricksprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==12){
+					   plankssprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==13){
+					   cobblesprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16); //todo: duplicate! add new type
+					}else if(this.data==14){
+					   dirtsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==15){
+					   claysprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==16){
+					   wtfsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==17){
+					   pedastalsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					 }else{
 				       canvas.fillStyle = bColors[this.data]; 
 					   canvas.fillRect((this.x-cam.x)*this.width, (this.y-cam.y)*this.height, this.width, this.height);
 					}
@@ -243,22 +275,22 @@
             canvas.fillRect((this.x-cam.x)*16, (this.y-cam.y)*16, this.width, this.height);
           },
 		  getKeys: function(merp) {
-			  if(keydown.left) {
+			  if(keydown.a) {
 			    this.dir=3;
 			    if ((merp.canWalk([this.x-1],[this.y])) && (merp.canWalk([this.x-1],[this.y+1]))) {this.x -= 1;}
 			  }
 			
-			  if(keydown.right) {
+			  if(keydown.d) {
 			    this.dir=1;
 				if ((merp.canWalk([this.x+2],[this.y])) && (merp.canWalk([this.x+2],[this.y+1]))) {this.x += 1;}
 			  }
 			  
-			  if(keydown.up) {
+			  if(keydown.w) {
 			    this.dir=0;
 				if ((merp.canWalk([this.x],[this.y-1])) && (merp.canWalk([this.x+1],[this.y-1]))) {this.y -= 1;}
 			  }
 			
-			  if(keydown.down) {
+			  if(keydown.s) {
 			    this.dir=2;
 				if ((merp.canWalk([this.x],[this.y+2])) && (merp.canWalk([this.x+1],[this.y+2]))) {this.y += 1;}
 			  }
@@ -273,7 +305,7 @@
           x: 1,
           y: 1,
 		  slow: false,
-		  mouse: false,
+		  mouse: true,
 		  size: 1, //TODO: add for loops to draw, placement to make larger brush size, center it?
 		  type: 1,
           width: 16,
@@ -284,7 +316,7 @@
 					}else if(this.type==1){
 					   darkgrasssprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.type==2){
-					   lavasprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					   lavasprite[tileani].draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.type==3){
 					   watersprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.type==4){
@@ -296,13 +328,25 @@
 					}else if(this.type==7){
 					   bricksprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.type==8){
-					   dirtsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					   woodsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.type==9){
 					   crystalsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.type==10){
-					   crystalsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16); //todo duplicate
+					   mossysprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16); 
 					}else if(this.type==11){
-					   darkgrasssprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					   stonebricksprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.type==12){
+					   plankssprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.type==13){
+					   cobblesprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16); //todo:  add new types
+					}else if(this.type==14){
+					   dirtsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.type==15){
+					   claysprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.type==16){
+					   wtfsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.type==17){
+					   pedastalsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else{
 				       canvas.fillStyle = bColors[this.data]; 
 					   canvas.fillRect((this.x-cam.x)*this.width, (this.y-cam.y)*this.height, this.width, this.height);
@@ -312,7 +356,7 @@
 		  getKeys: function() {
 		  	  if(nkey.check()) { 
 				  this.type++;
-				  if (this.type > 9) {this.type=0;}
+				  if (this.type > NUM_TILES) {this.type=0;}
 			  }
 			  
 			  if(slowkey.check()) {
@@ -344,19 +388,19 @@
 				  
 			  }else{
 			
-				  if(keydown.left) {
+				  if(keydown.a) {
 					this.x -= 1;
 				  }
 				
-				  if(keydown.right) {
+				  if(keydown.d) {
 					this.x += 1;
 				  }
 				  
-				  if(keydown.up) {
+				  if(keydown.w) {
 					this.y -= 1;
 				  }
 				
-				  if(keydown.down) {
+				  if(keydown.s) {
 					this.y += 1;
 				  }
 			  }
@@ -428,9 +472,9 @@
 		       I.tiles[x][y].data = data;
 			};
 		    I.canWalk = function (x,y) {
-		      if ((I.tiles[x][y].data ==0)  || (I.tiles[x][y].data ==1 ) || (I.tiles[x][y].data ==4) || (I.tiles[x][y].data ==6)|| (I.tiles[x][y].data ==9)) {
-				return true;
-			  }else {return false;}
+		      if ((I.tiles[x][y].data ==2)  || (I.tiles[x][y].data ==3 ) || (I.tiles[x][y].data ==5) || (I.tiles[x][y].data ==7)|| (I.tiles[x][y].data ==8)) {
+				return false;
+			  }else {return true;}
 		    };
 			I.drawRadar= function (cam,x,y,px,py) {
 				cam.check();
@@ -558,6 +602,13 @@
 		maps[0].loadDefaultTiles();
 	//------------MAIN-----------------------------------------
         function update() {
+		    anicount++;
+			if (anicount>anirate) {
+				tileani++;
+				anicount=0;
+			}
+			if (tileani>4) {tileani=0} //tile animations
+			
 		    if(modekey.check()) {
 				if (Mode==0) {
 					Mode=1;
@@ -577,22 +628,22 @@
 			  //if(hkey.check()) {alert("NO HELP FOR YOU");}
 		    if (true){ //camera mode
 			 			
-			  if(keydown.a) {
+			  if(keydown.left) {
 				camera.x -= 1;
 				if (camera.x<0) {camera.x=0;}
 			  }
 			
-			  if(keydown.d) {
+			  if(keydown.right) {
 				camera.x += 1;
 				if (camera.x>(MAP_WIDTH-camera.width)) {camera.x=MAP_WIDTH-camera.width;}
 			  }
 			  
-			  if(keydown.w) {
+			  if(keydown.up) {
 				camera.y -= 1;
 				if (camera.y<0) {camera.y=0;}
 			  }
 			
-			  if(keydown.s) {
+			  if(keydown.down) {
 				camera.y += 1;
 				if (camera.y>(MAP_HEIGHT-camera.height)) {camera.y=MAP_HEIGHT-camera.height;}
 			  }
@@ -612,7 +663,7 @@
 			  }
 			  
 			  if(helpkey.check()){
-			    alert("Arrow keys = move cursor, B = toggle speed, Space = Place block, V = Mouse mode toggle, N = switch block, Shift= Center Camera on cursor, M= switch to player mode, O = save map, L= loadmap");
+			    alert("W,A,S,D = move cursor, B = toggle speed, Space = Place block, V = Mouse mode toggle, N = switch block, Shift= Center Camera on cursor, M= switch to player mode, O = save map, L= loadmap");
 			 }
 			 
 			 if (edcursor.mouse) {
@@ -625,10 +676,10 @@
 					Mouse.wasWheeled=false;
 					if(Mouse.mDelta>0) {
 						edcursor.type++;
-						if (edcursor.type > 9) {edcursor.type=0;}
+						if (edcursor.type > NUM_TILES) {edcursor.type=0;}
 					}else{
 						edcursor.type--;
-						if (edcursor.type <0) {edcursor.type=9;}
+						if (edcursor.type <0) {edcursor.type=NUM_TILES;}
 				    } 
 				}
 			}

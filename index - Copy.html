@@ -6,7 +6,7 @@
     <script language="javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type="text/javascript"></script><script language="javascript" src="javascripts/jquery.hotkeys.js" type="text/javascript"></script><script language="javascript" src="javascripts/key_status.js" type="text/javascript"></script><script language="javascript" src="javascripts/util.js" type="text/javascript"></script><script language="javascript" src="javascripts/sprite.js" type="text/javascript"></script><script language="javascript" src="javascripts/sound.js" type="text/javascript"></script>
   </head>
   <body>
-    <h1>M= Mode | Space= shoot/place block | Shift= center camera on player/cursor </h1>
+    <h1>Hit H for controls. </h1>
     <script type='text/javascript'>
       //<![CDATA[
         var CANVAS_WIDTH = 900;
@@ -27,39 +27,133 @@
 		var obsidiansprite = Sprite("obsidian");
 		var mossysprite = Sprite("mossy");
 		var stonesprite = Sprite("stone");
+		var edsprite = Sprite("cursor");
 		Mode = 1;
 		var playerBullets = [];
 		//var keyboard = [];
 		//for (l=0;l<10;l++){keyboard.push(akey(keychart[l]));}
 
+		var canX=[];
+		var canY=[];
+        var canvasElement = $("<canvas width='" + CANVAS_WIDTH + 
+          "' height='" + CANVAS_HEIGHT + "'></canvas");
+        var canvas = canvasElement.get(0).getContext("2d");
+        canvasElement.appendTo('body');
+
+		
+		//canvas.globalAlpha = 0.85;//todo: something with this
+	
 			
-		function akey(k) {
+		function akey(k) {  //k,wkey?
 		    k = k || "space";
-			aflag=false;
-			check= function(){
-				if (keydown[k]) { 
-					aflag=true;
+			this.key =k;
+			this.aflag=false;
+			this.check= function(){
+				if (keydown[this.key]) { 
+					this.aflag=true;
 					return false;
 				}
-				if((!keydown[k]) && (aflag==true)){
-					aflag=false;
+				if((!keydown[this.key]) && (this.aflag==true)){
+					this.aflag=false;
 					return true;
 				}
 		    };
 			return this;
 		}
 		
-		var wkey=akey("w");
-		var aakey=akey("a");
-		var skey=akey("s");
-		var dkey=akey("d");
-	    var upkey=akey("up");
-		var rightkey=akey("right");
-		var downkey=akey("down");
-		var leftkey=akey("left");
-		var modekey=akey("m");
-		var nkey=akey("n");
-		var shiftkey=akey("shift");
+		function aMouse() {
+			this.mX= 0;
+			this.mY= 0;
+			this.tx= 0;
+			this.ty= 0;
+			this.mDelta=0;
+			this.wasWheeled= false;
+			this.mouseIsDown= false;
+		
+			
+			mouseXY= function(e) {
+				if (!e) var e = event;
+				mX = e.pageX - canvasElement.get(0).offsetLeft;
+				mY = e.pageY - canvasElement.get(0).offsetTop;
+				//alert("mousemoved");
+				canX=mX;
+				canY=mY;
+			
+				//showPos();
+			};
+			
+			this.startStroke= function(e) {
+				if (!e) var e = event;
+				mDelta=e.wheelDelta;
+				wasWheeled=true;
+				
+			};
+			
+			this.touchXY= function(e) { //touchsreen
+			if (!e) var e = event;
+			e.preventDefault();
+			mX = e.targetTouches[0].pageX - canvasElement.get(0).offsetLeft;
+			mY = e.targetTouches[0].pageY - canvasElement.get(0).offsetTop;
+			//showPos();
+			};
+			
+			mouseUp= function(e) {
+			if (!e) var e = event;
+			mouseIsDown = 0;
+			mouseXY(e);
+			};
+
+			touchUp= function() {
+			mouseIsDown = 0;
+			// no touch to track, so just show state
+			//do something.
+			};
+
+			mouseDown= function(e) {
+			if (!e) var e = event;
+			mouseIsDown = 1;
+			mouseXY(e);
+			tx=Math.floor(this.mX/16);
+			ty=Math.floor(this.mY/16);
+
+			};
+
+			this.touchDown= function() {
+			mouseIsDown = 1;
+			//do something();
+			};
+			return this;
+        }
+		
+		var Mouse= aMouse();
+		
+		canvasElement.get(0).addEventListener("mousewheel",Mouse.startStroke,false);
+		canvasElement.get(0).addEventListener("mousemove", Mouse.mouseXY, false);
+		canvasElement.get(0).addEventListener("mousedown", Mouse.mouseDown, false);
+
+		/*canvasElement.get(0).addEventListener("touchstart", Mouse.touchDown, false);
+		canvasElement.get(0).addEventListener("touchmove", Mouse.touchXY, true);   //TODO: Implement touch screen functions
+        canvasElement.get(0).addEventListener("touchend", Mouse.touchUp, false);*/
+ 
+		document.body.addEventListener("mouseup", Mouse.mouseUp, false);
+		//document.body.addEventListener("touchcancel", Mouse.touchUp, false);
+		
+		var savekey=new akey("o");
+		var loadkey=new akey("l");
+		var wkey=new akey("w");
+		var aakey=new akey("a");
+		var skey=new akey("s");
+		var dkey=new akey("d");
+	    var upkey=new akey("up");
+		var rightkey=new akey("right");
+		var downkey=new akey("down");
+		var leftkey=new akey("left");
+		var modekey=new akey("m");
+		var nkey=new akey("n");
+		var shiftkey=new akey("shift");
+		var helpkey=new akey("h");
+		var slowkey=new akey("b");
+		var cmousekey=new akey("v");
 		
 		var camera = {
 		    x: 0,
@@ -91,7 +185,7 @@
 			}
 		};
 				
-        var bColors = ["#000080","#FFC000", "#FFC040", "#FFC060", "#FFC080", "#FFD700", "#FFC0C0", "#FFC0FF", "#FFFF00", "#FFFF20", "#FFFF40", "#FFFF60", "#FFFF80"];
+        var bColors = ["#008000","#006400", "#FF4500", "#000080", "#696969", "#800080", "#808000", "#A52A2A", "#8B4513", "#FFDEAD", "#FFFF40","#000080" , "#FFFF80"];
 		function makeNewTile() { 
 		    var tile = {
                 width: 16,
@@ -104,11 +198,11 @@
 				    if(this.data==0){
 					   grasssprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.data==1){
-					   watersprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					   darkgrasssprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.data==2){
 					   lavasprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.data==3){
-					   rocksprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					   watersprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.data==4){
 					   stonesprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.data==5){
@@ -120,7 +214,7 @@
 					}else if(this.data==8){
 					   dirtsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.data==9){
-					   rocksprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					   crystalsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16); //todo: duplicate! add new type
 					}else if(this.data==10){
 					   crystalsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.data==11){
@@ -150,22 +244,22 @@
 		  getKeys: function(merp) {
 			  if(keydown.left) {
 			    this.dir=3;
-			    if (merp.tiles[this.x-1][this.y].data==0) {this.x -= 1;}
+			    if (merp.canWalk([this.x-1],[this.y])) {this.x -= 1;}
 			  }
 			
 			  if(keydown.right) {
 			    this.dir=1;
-				if (merp.tiles[this.x+2][this.y].data==0) {this.x += 1;}
+				if (merp.canWalk([this.x+2],[this.y])) {this.x += 1;}
 			  }
 			  
 			  if(keydown.up) {
 			    this.dir=0;
-				if (merp.tiles[this.x][this.y-1].data==0) {this.y -= 1;}
+				if (merp.canWalk([this.x],[this.y-1])) {this.y -= 1;}
 			  }
 			
 			  if(keydown.down) {
 			    this.dir=2;
-				if (merp.tiles[this.x][this.y+2].data==0) {this.y += 1;}
+				if (merp.canWalk([this.x],[this.y+2])) {this.y += 1;}
 			  }
 			  this.x = this.x.clamp(0, MAP_WIDTH-1);
 			  this.y = this.y.clamp(0, MAP_HEIGHT-1);
@@ -177,6 +271,8 @@
           color: "#00A",
           x: 1,
           y: 1,
+		  slow: false,
+		  mouse: false,
 		  size: 1, //TODO: add for loops to draw, placement to make larger brush size, center it?
 		  type: 1,
           width: 16,
@@ -185,11 +281,11 @@
             	    if(this.type==0){
 					   grasssprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.type==1){
-					   watersprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					   darkgrasssprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.type==2){
 					   lavasprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.type==3){
-					   rocksprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					   watersprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.type==4){
 					   stonesprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.type==5){
@@ -201,36 +297,67 @@
 					}else if(this.type==8){
 					   dirtsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.type==9){
-					   rocksprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
-					}else if(this.type==10){
 					   crystalsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.type==10){
+					   crystalsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16); //todo duplicate
 					}else if(this.type==11){
 					   darkgrasssprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else{
 				       canvas.fillStyle = bColors[this.data]; 
 					   canvas.fillRect((this.x-cam.x)*this.width, (this.y-cam.y)*this.height, this.width, this.height);
 					}
+					edsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
           },
 		  getKeys: function() {
-		  	  if(shiftkey.check()) { 
+		  	  if(nkey.check()) { 
 				  this.type++;
-				  if (this.type > 11) {this.type=0;}
-			  }
-			
-			  if(keydown.left) {
-				this.x -= 1;
-			  }
-			
-			  if(keydown.right) {
-				this.x += 1;
+				  if (this.type > 9) {this.type=0;}
 			  }
 			  
-			  if(keydown.up) {
-				this.y -= 1;
+			  if(slowkey.check()) {
+				this.slow=!this.slow;
 			  }
+			  
+			  if(cmousekey.check()) {
+				this.mouse=!this.mouse;
+			  }
+			  
+			  
+			  
+			  if (this.slow) {
+			  	if(leftkey.check()) {
+					this.x -= 1;
+				  }
+				
+				  if(rightkey.check()) {
+					this.x += 1;
+				  }
+				  
+				  if(upkey.check()) {
+					this.y -= 1;
+				  }
+				
+				  if(downkey.check()) {
+					this.y += 1;
+				  }
+				  
+			  }else{
 			
-			  if(keydown.down) {
-				this.y += 1;
+				  if(keydown.left) {
+					this.x -= 1;
+				  }
+				
+				  if(keydown.right) {
+					this.x += 1;
+				  }
+				  
+				  if(keydown.up) {
+					this.y -= 1;
+				  }
+				
+				  if(keydown.down) {
+					this.y += 1;
+				  }
 			  }
 			  this.x = this.x.clamp(0, MAP_WIDTH-1);
 			  this.y = this.y.clamp(0, MAP_HEIGHT-1);
@@ -243,8 +370,8 @@
 			var j = 0;
 		    I.active = true;
             I.color = "#00A";
-            I.tiles = new Array(120);
-			for( i=0; i<MAP_WIDTH; i++ ) { I.tiles[i] = new Array(80); }
+            I.tiles = new Array(MAP_WIDTH);
+			for( i=0; i<MAP_WIDTH; i++ ) { I.tiles[i] = new Array(MAP_HEIGHT); }
 		    for (i=0;i<MAP_WIDTH; i++){
 		        for (j=0;j<MAP_HEIGHT; j++){
 					I.tiles[i][j]= makeNewTile();
@@ -263,27 +390,45 @@
 				}
 			};
 		    I.saveTiles = function (name) {
-			    var myString = JSON.stringify(I.tiles); //!?!
-				localStorage.setItem(name, myString);
+			    //var myString = JSON.stringify(I.tiles); //!?!
+				var tempstring= "";
+				for (i=0;i<MAP_WIDTH; i++){
+					for (j=0;j<MAP_HEIGHT; j++){
+					    /*tempo=" ";
+						if (I.tiles[i][j].data <10)
+						{
+						    tempo+=I.tiles[i][j].data;
+							tempstring = tempstring +tempo;
+						}else*/ {tempstring = tempstring +I.tiles[i][j].data;}
+						//tempstring += ","
+					}
+				}
+				localStorage.setItem(name, tempstring);
+			    //alert (tempstring);
 			};
 		    I.loadTiles = function (name) {
-				poop=localStorage.getItem(name);
-				var myObject = JSON.parse(poop);
-				I.tiles=myObject;
+				tempstring=localStorage.getItem(name);
+				for (i=0;i<MAP_WIDTH; i++){
+					for (j=0;j<MAP_HEIGHT; j++){
+						I.tiles[i][j].data = tempstring[j+MAP_HEIGHT*i];
+					}
+				}
 			};
 		    I.setTile = function (x,y,data) {
 		       I.tiles[x][y].data = data;
 			};
 		    I.canWalk = function (x,y) {
-		      if (I.tiles[x][y].data ==0) {
+		      if ((I.tiles[x][y].data ==0)  || (I.tiles[x][y].data ==1 ) || (I.tiles[x][y].data ==4) || (I.tiles[x][y].data ==6)|| (I.tiles[x][y].data ==9)) {
 				return true;
 			  }else {return false;}
 		    };
 			I.drawRadar= function (cam,x,y) {
 				cam.check();
-				for (i=cam.x;i<cam.x+cam.width; i++){
-					for (j=cam.y;j<cam.y+cam.height; j++){
-						//TODO: draw pixel at x+i,y+j or col color
+				for (i=0;i<MAP_WIDTH; i++){
+					for (j=0;j<MAP_HEIGHT; j++){
+						  canvas.fillStyle = bColors[I.tiles[i][j].data];
+						  canvas.fillRect(x+i*2, y+j*2, 2, 2);
+          
 					}
 				}
 			};
@@ -329,13 +474,13 @@
             I.active = I.active && I.inBounds();
 			if((I.x>MAP_WIDTH-1) || (I.y>MAP_HEIGHT-1) || (I.x<0) || (I.y<0)) {
 				I.active=false;
-			}else if(merp.tiles[I.x][I.y].data>0) {I.active=false;} //todo:play a ding sound
+			}else if(!merp.canWalk([I.x],[I.y])) {I.active=false;} //todo:play a ding sound, change to merp.canflyover?
 			
           };
         
           I.explode = function() {
             this.active = false;
-            // Extra Credit: Add an explosion graphic
+            // TODO: Add an explosion graphic
           };
 		  
       
@@ -393,20 +538,13 @@
           return I;
         };
         
-        var canvasElement = $("<canvas width='" + CANVAS_WIDTH + 
-          "' height='" + CANVAS_HEIGHT + "'></canvas");
-        var canvas = canvasElement.get(0).getContext("2d");
-        canvasElement.appendTo('body');
-		
-		//canvas.globalAlpha = 0.85;//todo: something with this
-		
-        
+
         setInterval(function() {
           update();
           draw();
         }, 1000/FPS);
 		
-	
+	//------------MAIN-----------------------------------------
         function update() {
 		    if(modekey.check()) {
 				if (Mode==0) {
@@ -420,11 +558,11 @@
 				}
 					
 			 }
-			  /*if(shiftkey.check()) { 
+			  if(shiftkey.check()) { 
 			  if (Mode==0) {  camera.center(player); }
 			  if (Mode==1) {  camera.center(edcursor); }
-			  }*/
-			  //if(keyboard[0].check()) {alert(keyboard.length);}
+			  }
+			  //if(hkey.check()) {alert("NO HELP FOR YOU");}
 		    if (true){ //camera mode
 			 			
 			  if(keydown.a) {
@@ -452,13 +590,35 @@
 			  if(keydown.space) {
 				maps[0].setTile(edcursor.x,edcursor.y,edcursor.type);
 			  }
-			  if(keydown.h) {
+			  if(savekey.check()) {
 				maps[0].saveTiles("edsmap");
 			  }
 			  			  
-			  if(keydown.l) {
+			  if(loadkey.check()) {
 				maps[0].loadTiles("edsmap");
 			  }
+			  
+			  if(helpkey.check()){
+			    alert("Arrow keys = move cursor, B = toggle speed, Space = Place block, V = Mouse mode toggle, N = switch block, Shift= Center Camera on cursor, M= switch to player mode, O = save map, L= loadmap");
+			 }
+			 
+			 if (edcursor.mouse) {
+				edcursor.x=Math.round(canX/16)+camera.x;
+				edcursor.y=Math.round(canY/16)+camera.y;
+				if(Mouse.mouseIsDown){
+				  maps[0].setTile(edcursor.x,edcursor.y,edcursor.type)
+				}
+				if(Mouse.wasWheeled) {
+					Mouse.wasWheeled=false;
+					if(Mouse.mDelta>0) {
+						edcursor.type++;
+						if (edcursor.type > 9) {edcursor.type=0;}
+					}else{
+						edcursor.type--;
+						if (edcursor.type <0) {edcursor.type=9;}
+				    } 
+				}
+			}
 			  
 			  edcursor.getKeys();
 		  }else if(Mode==0) {
@@ -467,6 +627,9 @@
 				  player.shoot();
 			  }
 			  camera.center(player);
+			  if(helpkey.check()){
+			    alert("Arrow keys = move player, Space = shoot, M= switch to edit mode");
+			 }
 		  }
         
 			  playerBullets.forEach(function(bullet) {
@@ -495,7 +658,7 @@
         
         player.shoot = function() {
           if (playerBullets.length>9) {return;}
-		  Sound.play("shoot");
+		  //Sound.play("shoot");
         
           var bulletPosition = this.midpoint();
 		  bulletPosition.x=this.x;
@@ -522,7 +685,7 @@
 		  
 		 maps.forEach(function(imap) {
             imap.draw(camera);
-			imap.drawRadar(camera, 728, 100);
+			imap.drawRadar(camera, 570, 466);
          });
 		 
 		 
