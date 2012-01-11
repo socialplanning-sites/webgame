@@ -6,7 +6,12 @@
     <script language="javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type="text/javascript"></script><script language="javascript" src="javascripts/jquery.hotkeys.js" type="text/javascript"></script><script language="javascript" src="javascripts/key_status.js" type="text/javascript"></script><script language="javascript" src="javascripts/util.js" type="text/javascript"></script><script language="javascript" src="javascripts/sprite.js" type="text/javascript"></script><script language="javascript" src="javascripts/sound.js" type="text/javascript"></script>
   </head>
   <body>
+  		<audio id="myAudio">
+    <source src="song.mp3" type="audio/mpeg" />
+    Your browser does not support the audio element.
+    </audio>
     <h1>Hit H for controls. </h1>
+
     <script type='text/javascript'>
       //<![CDATA[
         var CANVAS_WIDTH = 900;
@@ -148,9 +153,9 @@
 		canvasElement.get(0).addEventListener("mousemove", Mouse.mouseXY, false);
 		canvasElement.get(0).addEventListener("mousedown", Mouse.mouseDown, false);
 
-		/*canvasElement.get(0).addEventListener("touchstart", Mouse.touchDown, false);
+		canvasElement.get(0).addEventListener("touchstart", Mouse.touchDown, false);
 		canvasElement.get(0).addEventListener("touchmove", Mouse.touchXY, true);   //TODO: Implement touch screen functions
-        canvasElement.get(0).addEventListener("touchend", Mouse.touchUp, false);*/
+        canvasElement.get(0).addEventListener("touchend", Mouse.touchUp, false);
  
 		document.body.addEventListener("mouseup", Mouse.mouseUp, false);
 		//document.body.addEventListener("touchcancel", Mouse.touchUp, false);
@@ -172,6 +177,8 @@
 		var slowkey=new akey("b");
 		var cmousekey=new akey("v");
 	    var defkey=new akey("j");
+		
+		var stuff=[];
 		
 		var camera = {
 		    x: 0,
@@ -203,6 +210,34 @@
 			}
 		};
 			
+		function thing(px,py) {
+		    
+			this.x= px;
+			this.y= py;
+			this.active= true;
+			this.width= 32;
+			this.height= 32;
+            this.sprite= Sprite("shroom");
+			this.collectable= true;
+			this.setSprite= function(name) {
+				this.sprite= Sprite(name);
+			};
+			this.draw= function(cam) {
+				this.sprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+			};
+			this.colision= function(that) {
+			    if( ((this.x==that.x) ||(this.x==that.x+1))&& ((this.y==that.y) || (this.y==that.y+1)) ) {
+				     this.active=false;
+					 return true;
+				}
+				return false;
+			};
+			this.update=function(ply) {
+				if(this.colision(ply)) {this.active=false;}
+			};
+            return this;
+		}
+		
 
 	    
         var bColors = ["#008000","#006400", "#FF4500", "#000080", "#696969", "#800080", "#808000", "#A52A2A", "#8B4513", "#FFDEAD", "#FFFF40","#000080" , "#FFFF80"];
@@ -471,11 +506,21 @@
 		    I.setTile = function (x,y,data) {
 		       I.tiles[x][y].data = data;
 			};
-		    I.canWalk = function (x,y) {
+			
+		    I.canWalk = function (x,y) { //overhead + side mode
 		      if ((I.tiles[x][y].data ==2)  || (I.tiles[x][y].data ==3 ) || (I.tiles[x][y].data ==5) || (I.tiles[x][y].data ==7)|| (I.tiles[x][y].data ==8)) {
 				return false;
 			  }else {return true;}
 		    };
+			
+			
+			I.canStand = function (x,y) { //sidemode only
+		      if ((I.tiles[x][y].data ==7)  || (I.tiles[x][y].data ==7 ) || (I.tiles[x][y].data ==5) || (I.tiles[x][y].data ==7)|| (I.tiles[x][y].data ==8)) {
+				return true;
+			  }else {return false;}
+		    };
+			
+			
 			I.drawRadar= function (cam,x,y,px,py) {
 				cam.check();
 				for (i=0;i<MAP_WIDTH; i++){
@@ -600,8 +645,26 @@
           draw();
         }, 1000/FPS);
 		maps[0].loadDefaultTiles();
+		for(ijk=0;ijk<32;ijk++)
+		{
+			
+			tempx=Math.floor(Math.random() *MAP_WIDTH);
+			tempy=Math.floor(Math.random() *MAP_HEIGHT);
+			if(maps[0].tiles[tempx][tempy].data==0) {
+				stuff.push(new thing(tempx,tempy));
+			}
+		}
+		stuff.push(new thing(5,5));
+		
+	document.getElementById("myAudio").addEventListener('ended', function() {
+    this.currentTime = 0;
+    this.play();
+	}, false);
+		
+		document.getElementById("myAudio").play();
 	//------------MAIN-----------------------------------------
         function update() {
+		
 		    anicount++;
 			if (anicount>anirate) {
 				tileani++;
@@ -686,6 +749,12 @@
 			  
 			  edcursor.getKeys();
 		  }else if(Mode==0) {
+		  if (defkey.check()) {
+				canvas.beginPath();
+				canvas.moveTo(player.x*16-16, player.y*16-16);
+				canvas.lineTo((player.x-5)*16, player.y*16-16);
+				canvas.stroke();
+			}
 			player.getKeys(maps[0]);
 		     if(keydown.space) { 
 				  player.shoot();
@@ -695,11 +764,13 @@
 			    alert("Arrow keys = move player, Space = shoot, M= switch to edit mode");
 			 }
 		  }
-        
-			  playerBullets.forEach(function(bullet) {
+        ////process things
+			  playerBullets.forEach(function(bullet) {  
 				bullet.update(maps[0]);
 			  });
-		  
+		  stuff.forEach(function(thing) {
+            thing.update(player);
+          });
 		  handleCollisions();
           playerBullets = playerBullets.filter(function(bullet) {
             return bullet.active;
@@ -711,6 +782,10 @@
         
           enemies = enemies.filter(function(enemy) {
             return enemy.active;
+          });
+		  
+		  stuff = stuff.filter(function(thing) {
+            return thing.active;
           });
         
           
@@ -755,11 +830,25 @@
 		 
 		 
 		 if(true) { player.draw(camera);}
+		 if(maps[0].tiles[player.x][player.y+1].data==1) {
+			darkgrasssprite.draw(canvas, (player.x-camera.x)*16, (player.y-camera.y+1)*16);
+		
+		 }//todo work this into person.draw, so it work for all npcs
+		  if(maps[0].tiles[player.x+1][player.y+1].data==1) {
+			darkgrasssprite.draw(canvas, (player.x-camera.x+1)*16, (player.y-camera.y+1)*16);
+		
+		 }
 		 if(Mode==1) { edcursor.draw(camera);}
           
           playerBullets.forEach(function(bullet) {
             bullet.draw(camera);
           });
+		  
+		  stuff.forEach(function(thing) {
+            thing.draw(camera);
+          });
+		  
+		  //stuff[0].draw(camera);
         
           enemies.forEach(function(enemy) {
             enemy.draw(camera);
@@ -804,7 +893,12 @@
           this.sprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 		  //canvas.globalCompositeOperation = 'source-over';
         };
+		/*thing.draw= function(cam) {
+				shroomsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+				//alert ("WHY");
+			};*/
       //]]>
     </script>
+
   </body>
 </html>
