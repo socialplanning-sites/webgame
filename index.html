@@ -6,7 +6,12 @@
     <script language="javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type="text/javascript"></script><script language="javascript" src="javascripts/jquery.hotkeys.js" type="text/javascript"></script><script language="javascript" src="javascripts/key_status.js" type="text/javascript"></script><script language="javascript" src="javascripts/util.js" type="text/javascript"></script><script language="javascript" src="javascripts/sprite.js" type="text/javascript"></script><script language="javascript" src="javascripts/sound.js" type="text/javascript"></script>
   </head>
   <body>
+  		<audio id="myAudio">
+    <source src="song.mp3" type="audio/mpeg" />
+    Your browser does not support the audio element.
+    </audio>
     <h1>Hit H for controls. </h1>
+
     <script type='text/javascript'>
       //<![CDATA[
         var CANVAS_WIDTH = 900;
@@ -501,11 +506,21 @@
 		    I.setTile = function (x,y,data) {
 		       I.tiles[x][y].data = data;
 			};
-		    I.canWalk = function (x,y) {
+			
+		    I.canWalk = function (x,y) { //overhead + side mode
 		      if ((I.tiles[x][y].data ==2)  || (I.tiles[x][y].data ==3 ) || (I.tiles[x][y].data ==5) || (I.tiles[x][y].data ==7)|| (I.tiles[x][y].data ==8)) {
 				return false;
 			  }else {return true;}
 		    };
+			
+			
+			I.canStand = function (x,y) { //sidemode only
+		      if ((I.tiles[x][y].data ==7)  || (I.tiles[x][y].data ==7 ) || (I.tiles[x][y].data ==5) || (I.tiles[x][y].data ==7)|| (I.tiles[x][y].data ==8)) {
+				return true;
+			  }else {return false;}
+		    };
+			
+			
 			I.drawRadar= function (cam,x,y,px,py) {
 				cam.check();
 				for (i=0;i<MAP_WIDTH; i++){
@@ -640,6 +655,13 @@
 			}
 		}
 		stuff.push(new thing(5,5));
+		
+	document.getElementById("myAudio").addEventListener('ended', function() {
+    this.currentTime = 0;
+    this.play();
+	}, false);
+		
+		document.getElementById("myAudio").play();
 	//------------MAIN-----------------------------------------
         function update() {
 		
@@ -727,6 +749,12 @@
 			  
 			  edcursor.getKeys();
 		  }else if(Mode==0) {
+		  if (defkey.check()) {
+				canvas.beginPath();
+				canvas.moveTo(player.x*16-16, player.y*16-16);
+				canvas.lineTo((player.x-5)*16, player.y*16-16);
+				canvas.stroke();
+			}
 			player.getKeys(maps[0]);
 		     if(keydown.space) { 
 				  player.shoot();
@@ -871,5 +899,6 @@
 			};*/
       //]]>
     </script>
+
   </body>
 </html>
