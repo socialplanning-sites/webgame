@@ -6,8 +6,8 @@
     <script language="javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type="text/javascript"></script><script language="javascript" src="javascripts/jquery.hotkeys.js" type="text/javascript"></script><script language="javascript" src="javascripts/key_status.js" type="text/javascript"></script><script language="javascript" src="javascripts/util.js" type="text/javascript"></script><script language="javascript" src="javascripts/sprite.js" type="text/javascript"></script><script language="javascript" src="javascripts/sound.js" type="text/javascript"></script>
   </head>
   <body>
-  		<audio id="myAudio">
-    <source src="song.mp3" type="audio/mpeg" />
+  	<audio id="myAudio">
+    <source src="songu.mp3" type="audio/mpeg" />
     Your browser does not support the audio element.
     </audio>
     <h1>Hit H for controls. </h1>
@@ -62,7 +62,7 @@
         var tileani=0;
 		var anicount=0;
 		var anirate=10;
-		
+		var gotall=false;
 		//canvas.globalAlpha = 0.85;//todo: something with this
 	
 			
@@ -305,11 +305,107 @@
 		  type: 0,
           width: 32,
           height: 32,
-          draw: function(cam) {
+		  swordlen: 12,
+		  swordwidth: 4,
+		  swordspeed: 1,
+		  swordtrack: 0,
+		  swordcount: 0,
+		  swordactive: false,
+		  swordgoing: true,
+		  hitsword: function (px,py,pw,ph){
+		        if(!this.swordactive) {return false;}
+				if(this.dir==0){
+				    tempx=(this.x)*16+16;
+					tempy=(this.y)*16-this.swordtrack*2;
+					if((tempx > px*16) && (tempx < px*16+pw)){
+						if((tempy >py*16) && (tempy< py*16+ph)){
+						  return true;
+						}
+					}
+					//canvas.moveTo((this.x-cam.x)*16+16, (this.y-cam.y)*16);
+					//canvas.lineTo(((this.x-cam.x))*16+16, (this.y-cam.y)*16-this.swordtrack*2);
+				}else if(this.dir==1){
+				    tempx=(this.x)*16+32+this.swordtrack*2;;
+					tempy=(this.y)*16+16
+					if((tempx > px*16) && (tempx < px*16+pw)){
+						if((tempy >py*16) && (tempy< py*16+ph)){
+						  return true;
+						}
+					}
+				}else if(this.dir==2){
+				    tempx=(this.x)*16+16;
+					tempy=(this.y)*16+32+this.swordtrack*2;
+					if((tempx > px*16) && (tempx < px*16+pw)){
+						if((tempy >py*16) && (tempy< py*16+ph)){
+						  return true;
+						}
+					}
+				}else if(this.dir==3){
+			    tempx=(this.x)*16-this.swordtrack*2;;
+					tempy=(this.y)*16+16
+					if((tempx > px*16) && (tempx < px*16+pw)){
+						if((tempy >py*16) && (tempy< py*16+ph)){
+						  return true;
+						}
+					}
+				}
+				return false;
+			},
+          drawsword: function(cam){
+		  		canvas.beginPath();
+				if(this.dir==0){
+					canvas.moveTo((this.x-cam.x)*16+16, (this.y-cam.y)*16);
+					canvas.lineTo(((this.x-cam.x))*16+16, (this.y-cam.y)*16-this.swordtrack*2);
+				}else if(this.dir==1){
+					canvas.moveTo((this.x-cam.x)*16+32, (this.y-cam.y)*16+16);
+					canvas.lineTo(((this.x-cam.x))*16+32+this.swordtrack*2, (this.y-cam.y)*16+16);
+				}else if(this.dir==2){
+					canvas.moveTo((this.x-cam.x)*16+16, (this.y-cam.y)*16+32);
+					canvas.lineTo(((this.x-cam.x))*16+16, (this.y-cam.y)*16+32+this.swordtrack*2);
+				}else if(this.dir==3){
+					canvas.moveTo((this.x-cam.x)*16, (this.y-cam.y)*16+16);
+					canvas.lineTo(((this.x-cam.x))*16-this.swordtrack*2, (this.y-cam.y)*16+16);
+				}
+				canvas.stroke();
+				//alert("nuh");
+			},
+		  
+		  draw: function(cam) {
             canvas.fillStyle = bColors[this.type];
             canvas.fillRect((this.x-cam.x)*16, (this.y-cam.y)*16, this.width, this.height);
+
           },
+		  
 		  getKeys: function(merp) {
+		      if(this.swordactive){
+                 if(this.swordgoing) {
+					this.swordtrack++;
+					}
+
+				 if(!this.swordgoing) {
+					this.swordtrack--;
+					}
+					
+					if (this.swordtrack>this.swordlen) { 
+					    this.swordgoing=false;
+						this.swordtrack=this.swordlen;
+						//this.swordactive=false;
+					}
+					
+					if (this.swordtrack<1) { 
+					    this.swordgoing=true
+						this.swordtrack=0;
+						this.swordactive=false;
+					}
+
+			  }
+		      if(defkey.check()){
+				if (!this.swordactive){
+					this.swordactive=true;
+					
+				}
+			  }
+		  
 			  if(keydown.a) {
 			    this.dir=3;
 			    if ((merp.canWalk([this.x-1],[this.y])) && (merp.canWalk([this.x-1],[this.y+1]))) {this.x -= 1;}
@@ -665,6 +761,8 @@
 	//------------MAIN-----------------------------------------
         function update() {
 		
+		if (player.hitsword(5,5,20,20)) {alert ("hit it!");}
+		
 		    anicount++;
 			if (anicount>anirate) {
 				tileani++;
@@ -749,12 +847,7 @@
 			  
 			  edcursor.getKeys();
 		  }else if(Mode==0) {
-		  if (defkey.check()) {
-				canvas.beginPath();
-				canvas.moveTo(player.x*16-16, player.y*16-16);
-				canvas.lineTo((player.x-5)*16, player.y*16-16);
-				canvas.stroke();
-			}
+
 			player.getKeys(maps[0]);
 		     if(keydown.space) { 
 				  player.shoot();
@@ -771,6 +864,7 @@
 		  stuff.forEach(function(thing) {
             thing.update(player);
           });
+		  if(!stuff[0]) {gotall=true;}
 		  handleCollisions();
           playerBullets = playerBullets.filter(function(bullet) {
             return bullet.active;
@@ -829,7 +923,7 @@
 		 
 		 
 		 
-		 if(true) { player.draw(camera);}
+
 		 if(maps[0].tiles[player.x][player.y+1].data==1) {
 			darkgrasssprite.draw(canvas, (player.x-camera.x)*16, (player.y-camera.y+1)*16);
 		
@@ -853,6 +947,13 @@
           enemies.forEach(function(enemy) {
             enemy.draw(camera);
           });
+		  
+		 if(true) { player.draw(camera);}
+				 
+				 
+		if(maps[0].tiles[player.x+1][player.y+1].data==1) {
+			darkgrasssprite.draw(canvas, (player.x-camera.x+1)*16, (player.y-camera.y+1)*16);
+		 }
         }
         
         function collides(a, b) {
@@ -891,6 +992,7 @@
         player.draw = function(cam) {
 		  //canvas.globalCompositeOperation = 'source-in';
           this.sprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+		  this.drawsword(cam);
 		  //canvas.globalCompositeOperation = 'source-over';
         };
 		/*thing.draw= function(cam) {
