@@ -7,7 +7,7 @@
   </head>
   <body>
   	<audio id="myAudio">
-    <source src="songu.mp3" type="audio/mpeg" />
+    <source src="song.mp3" type="audio/mpeg" />
     Your browser does not support the audio element.
     </audio>
     <h1>Hit H for controls. </h1>
@@ -727,6 +727,18 @@
             // TODO: Add an explosion graphic
           };
 		  
+		  I.checkHit= function(targ) {
+			tempx=I.x*16;
+			tempy=I.y*16;
+			//alert("");
+		  if((tempx > targ.x*16) && (tempx <targ.x*16+32) && (tempy > targ.y*16) && (tempy <targ.y*16+32)) {
+		    I.active=false;
+			return true;
+			
+		  }
+		  return false;
+		  };
+		  
       
           return I;
         }
@@ -1028,9 +1040,10 @@
         function handleCollisions() {
           playerBullets.forEach(function(bullet) {
             enemies.forEach(function(enemy) {
-              if(collides(bullet, enemy)) {
+              if(bullet.checkHit(enemy)) {
                 enemy.explode();
                 bullet.active = false;
+				player.kills++;
               }
             });
           });
