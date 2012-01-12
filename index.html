@@ -86,6 +86,8 @@
 		function aMouse() {
 			this.mX= 0;
 			this.mY= 0;
+			this.lastY=0;
+			this.lastX=0;
 			this.tx= 0;
 			this.ty= 0;
 			this.mDelta=0;
@@ -133,8 +135,11 @@
 
 			mouseDown= function(e) {
 			if (!e) var e = event;
+
 			mouseIsDown = 1;
 			mouseXY(e);
+			lastX=tx;
+			lastY=ty;
 			tx=Math.floor(this.mX/16);
 			ty=Math.floor(this.mY/16);
 
@@ -297,6 +302,42 @@
             return tile;
 		};
 		
+		var Smedly = {
+          color: "#00A",
+          x: 6,
+          y: 53,
+		  dir: 0,
+		  type: 0,
+		  hp: 100,
+          width: 32,
+		  active: false,
+          height: 32,
+		  angle: 0,
+		  sprite: Sprite("smedly"),
+		  draw: function(cam) {
+		    //canvas.save();
+			//canvas.scale(2,1);
+			//canvas.rotate(Math.PI* this.angle);
+            this.sprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+			//canvas.restore();
+			//canvas.scale(-2,-2);
+		  },
+        
+          update: function() {
+			this.angle++;
+			if (this.angle>359) {this.angle=0;}
+       
+          },
+        
+          explode: function() {
+            Sound.play("explosion");
+        
+            this.active = false;
+            // Extra Credit: Add an explosion graphic
+          }
+        
+		  };
+		
         var player = {
           color: "#00A",
           x: 30,
@@ -305,6 +346,7 @@
 		  type: 0,
           width: 32,
           height: 32,
+		  kills: 0,
 		  swordlen: 12,
 		  swordwidth: 4,
 		  swordspeed: 1,
@@ -313,7 +355,7 @@
 		  swordactive: false,
 		  swordgoing: true,
 		  hitsword: function (px,py,pw,ph){
-		        if(!this.swordactive) {return false;}
+		        if(!this.swordactive) {return false;} //todo: change this to check rectangle not just end point.
 				if(this.dir==0){
 				    tempx=(this.x)*16+16;
 					tempy=(this.y)*16-this.swordtrack*2;
@@ -322,8 +364,7 @@
 						  return true;
 						}
 					}
-					//canvas.moveTo((this.x-cam.x)*16+16, (this.y-cam.y)*16);
-					//canvas.lineTo(((this.x-cam.x))*16+16, (this.y-cam.y)*16-this.swordtrack*2);
+
 				}else if(this.dir==1){
 				    tempx=(this.x)*16+32+this.swordtrack*2;;
 					tempy=(this.y)*16+16
@@ -352,21 +393,27 @@
 				return false;
 			},
           drawsword: function(cam){
-		  		canvas.beginPath();
+		  		
+				canvas.fillStyle = "#7CFC00";
 				if(this.dir==0){
-					canvas.moveTo((this.x-cam.x)*16+16, (this.y-cam.y)*16);
-					canvas.lineTo(((this.x-cam.x))*16+16, (this.y-cam.y)*16-this.swordtrack*2);
+					
+					canvas.fillRect((this.x-cam.x)*16+16, (this.y-cam.y)*16, this.swordwidth, -this.swordtrack*2);
+					//canvas.moveTo((this.x-cam.x)*16+16, (this.y-cam.y)*16);
+					//canvas.lineTo(((this.x-cam.x))*16+16, (this.y-cam.y)*16-this.swordtrack*2);  
 				}else if(this.dir==1){
-					canvas.moveTo((this.x-cam.x)*16+32, (this.y-cam.y)*16+16);
-					canvas.lineTo(((this.x-cam.x))*16+32+this.swordtrack*2, (this.y-cam.y)*16+16);
+					canvas.fillRect((this.x-cam.x)*16+32, (this.y-cam.y)*16+16, this.swordtrack*2,this.swordwidth);
+					//canvas.moveTo((this.x-cam.x)*16+32, (this.y-cam.y)*16+16);
+					//canvas.lineTo(((this.x-cam.x))*16+32+this.swordtrack*2, (this.y-cam.y)*16+16);
 				}else if(this.dir==2){
-					canvas.moveTo((this.x-cam.x)*16+16, (this.y-cam.y)*16+32);
-					canvas.lineTo(((this.x-cam.x))*16+16, (this.y-cam.y)*16+32+this.swordtrack*2);
+					canvas.fillRect((this.x-cam.x)*16+16, (this.y-cam.y)*16+32, this.swordwidth, this.swordtrack*2);
+					//canvas.moveTo((this.x-cam.x)*16+16, (this.y-cam.y)*16+32);
+					//canvas.lineTo(((this.x-cam.x))*16+16, (this.y-cam.y)*16+32+this.swordtrack*2);
 				}else if(this.dir==3){
-					canvas.moveTo((this.x-cam.x)*16, (this.y-cam.y)*16+16);
-					canvas.lineTo(((this.x-cam.x))*16-this.swordtrack*2, (this.y-cam.y)*16+16);
+					canvas.fillRect((this.x-cam.x)*16, (this.y-cam.y)*16+16, -this.swordtrack*2,this.swordwidth);
+					//canvas.moveTo((this.x-cam.x)*16, (this.y-cam.y)*16+16);
+					//canvas.lineTo(((this.x-cam.x))*16-this.swordtrack*2, (this.y-cam.y)*16+16);
 				}
-				canvas.stroke();
+				
 				//alert("nuh");
 			},
 		  
@@ -379,11 +426,11 @@
 		  getKeys: function(merp) {
 		      if(this.swordactive){
                  if(this.swordgoing) {
-					this.swordtrack++;
+					this.swordtrack+=3;
 					}
 
 				 if(!this.swordgoing) {
-					this.swordtrack--;
+					this.swordtrack-=3;
 					}
 					
 					if (this.swordtrack>this.swordlen) { 
@@ -695,7 +742,7 @@
           
           I.color = "#A2B";
         
-          I.x = 5
+          I.x = Math.floor(Math.random() * MAP_WIDTH);
           I.y = 5;
           I.xVelocity = 0
           I.yVelocity = 1;
@@ -708,17 +755,17 @@
               I.y >= 0 && I.y <= MAP_HEIGHT;
           };
         
-          I.sprite = Sprite("enemy");
+          I.sprite = Sprite("enemy1");
         
           I.draw = function(cam) {
             this.sprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
           };
         
           I.update = function() {
-            I.x += I.xVelocity;
-            I.y += I.yVelocity;
+            I.x += I.xVelocity/4;
+            I.y += I.yVelocity/4;
         
-            //I.xVelocity = 3 * Math.sin(I.age * Math.PI / 64);
+            I.xVelocity = 3 * Math.sin(I.age * Math.PI / 64);
         
             I.age++;
         
@@ -800,12 +847,14 @@
 			  }
 			  
 			  if(keydown.up) {
+				//canvas.scale(2,2);
 				camera.y -= 1;
 				if (camera.y<0) {camera.y=0;}
 			  }
 			
 			  if(keydown.down) {
 				camera.y += 1;
+				//canvas.scale(-2,-2);
 				if (camera.y>(MAP_HEIGHT-camera.height)) {camera.y=MAP_HEIGHT-camera.height;}
 			  }
 			 
@@ -865,6 +914,11 @@
             thing.update(player);
           });
 		  if(!stuff[0]) {gotall=true;}
+		  if((gotall) && (player.kills>4))
+		  { 
+			Smedly.active=true;
+			gotall=false;
+		  }
 		  handleCollisions();
           playerBullets = playerBullets.filter(function(bullet) {
             return bullet.active;
@@ -885,7 +939,7 @@
           
         
           if((Math.random() < 0.1) && (enemies.length<5)) {
-            //enemies.push(Enemy());
+            enemies.push(Enemy());
           }
         }
         
@@ -918,20 +972,12 @@
 		  
 		 maps.forEach(function(imap) {
             imap.draw(camera);
-			imap.drawRadar(camera, 570, 466,player.x,player.y);
+			//imap.drawRadar(camera, 580, 466,player.x,player.y);
          });
 		 
 		 
 		 
 
-		 if(maps[0].tiles[player.x][player.y+1].data==1) {
-			darkgrasssprite.draw(canvas, (player.x-camera.x)*16, (player.y-camera.y+1)*16);
-		
-		 }//todo work this into person.draw, so it work for all npcs
-		  if(maps[0].tiles[player.x+1][player.y+1].data==1) {
-			darkgrasssprite.draw(canvas, (player.x-camera.x+1)*16, (player.y-camera.y+1)*16);
-		
-		 }
 		 if(Mode==1) { edcursor.draw(camera);}
           
           playerBullets.forEach(function(bullet) {
@@ -948,12 +994,27 @@
             enemy.draw(camera);
           });
 		  
+		if(Smedly.active){
+			Smedly.draw(camera);
+		}
+		  
 		 if(true) { player.draw(camera);}
 				 
 				 
-		if(maps[0].tiles[player.x+1][player.y+1].data==1) {
+
+		 if(maps[0].tiles[player.x][player.y+1].data==1) {
+			darkgrasssprite.draw(canvas, (player.x-camera.x)*16, (player.y-camera.y+1)*16);
+		
+		 }//todo work this into person.draw, so it work for all npcs
+		  if(maps[0].tiles[player.x+1][player.y+1].data==1) {
 			darkgrasssprite.draw(canvas, (player.x-camera.x+1)*16, (player.y-camera.y+1)*16);
+		
 		 }
+		 
+		  maps.forEach(function(imap) {
+            //imap.draw(camera);
+			imap.drawRadar(camera, 580, 466,player.x,player.y);
+         });
         }
         
         function collides(a, b) {
@@ -979,9 +1040,17 @@
               enemy.explode();
               player.explode();
             }
+			if(player.hitsword(enemy.x,enemy.y,32,32)) {
+			enemy.explode();
+			player.kills++;
+			}
           });
         }
         
+		if(Smedly.active){
+			Smedly.update();
+			}
+		
         player.explode = function() {
           this.active = false;
           // Extra Credit: Add an explosion graphic and then end the game
