@@ -1,3 +1,44 @@
+-learn inheritance, use inheritance unit=>player=>NPC=>enemy
+ -on person.move, person.tiletype =map[][].data
+    -basic two waypoint/random wander AI, text
+-borders around map
+	Uncaught TypeError: Cannot read property 'data' of undefined line 592 (canWalk)
+	-enemies can hurt player
+		--do bullet collioson for enemy, then smedly
+	--do smedly sword collision
+	--make smedly move, attack
+-menus
+  -item
+  -status
+  -equip
+-sword/tool swing/collision, breakable blocks
+-bombs, timed like lufia II?
+-explosive barrels, how does Map handle objects at all, does it?
+	maybe the map is just tiles/walls, barrels, players, npcs, enemeis all inherit from unit
+	search all units on map each frame and update/check collision
+-in edit mode:
+ --undo
+ --rect selection, outline or fill
+ -fill option?
+ -get map name to save as
+ -
+ -make drawradar it's own function that takes map and list of things.
+-slow the bear down, have a "number of button presses before move him one tile" (depends on material player is on!) = speed basically.  eventually make it how many ticks button held.
+ 
+ -bushes drawn over bottom of dude? //hacked in
+ -slow down player on bushes
+ -roofes on houses obscure inside until you enter ala DW
+   -hoooow? need house object? OR if tile =any floor and player on any floor, render as such, if player is not on any floor render roof?  nah wont work like that...
+ 
+ 
+ moust.lastxy
+ square fill, for Ilastx to x, last x to y fill with type  //error checking
+ 
+ if((gotall) &&( math.random() *1000 ) && (!smedly)<1) {smedly}
+ -music
+ -has jump attack, scale larger by "jumpheight"
+	-DIFFERENT TEXTURES for each size, animation?
+	-smoke particles when hits ground, check for player.  elave crater on map?
 -fix collison
 -learn inheritance, use inheritance unit=>player=>NPC=>enemy
     -basic two waypoint/random wander AI, text
