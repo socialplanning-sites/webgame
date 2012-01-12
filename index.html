@@ -188,21 +188,21 @@
 		var camera = {
 		    x: 0,
 			y: 0,
-			width: 52,
+			width: 60,
 			height: 40,
 			center: function(targ) {
 			    tx=targ.x-26;
 				ty=targ.y-20;
 				if (tx<0) {tx=0;}
 				if (ty<0) {ty=0;}
-				if (tx>MAP_WIDTH-52) {tx=MAP_WIDTH-52;}
+				if (tx>MAP_WIDTH-60) {tx=MAP_WIDTH-60;}
 				if (ty>MAP_HEIGHT-40) {ty=MAP_HEIGHT-40;}
 
 				this.x=tx;
 				this.y=ty;
 			},
 			check: function() {
-			    this.x.clamp(0, MAP_WIDTH-52);
+			    this.x.clamp(0, MAP_WIDTH-60);
 				this.y.clamp(0, MAP_HEIGHT-40);
 			},
 			rX: function(fx)
@@ -346,6 +346,7 @@
 		  type: 0,
           width: 32,
           height: 32,
+		  ani: 0,
 		  kills: 0,
 		  swordlen: 12,
 		  swordwidth: 4,
@@ -354,6 +355,24 @@
 		  swordcount: 0,
 		  swordactive: false,
 		  swordgoing: true,
+		  init: function () {
+			this.sprites=new Array(4); //4 directions
+			this.sprites[0] = new Array(2);  //2 frames
+			this.sprites[1] = new Array(2);
+			this.sprites[2] = new Array(2);
+			this.sprites[3] = new Array(2);
+			this.sprites[0][0]= Sprite("bearback1");
+			this.sprites[0][1]= Sprite("bearback2");
+			
+			this.sprites[1][0]= Sprite("bearr1");
+			this.sprites[1][1]= Sprite("bearr2");
+			
+			this.sprites[2][0]= Sprite("bear1");
+			this.sprites[2][1]= Sprite("bear2");
+			
+			this.sprites[3][0]= Sprite("bearl1");
+			this.sprites[3][1]= Sprite("bearl2");
+		  },
 		  hitsword: function (px,py,pw,ph){
 		        if(!this.swordactive) {return false;} //todo: change this to check rectangle not just end point.
 				if(this.dir==0){
@@ -416,6 +435,14 @@
 				
 				//alert("nuh");
 			},
+			
+		  animate: function() {
+		  if(this.ani==0){
+				this.ani=1;
+			}else{
+				this.ani=0;
+			}
+		  },
 		  
 		  draw: function(cam) {
             canvas.fillStyle = bColors[this.type];
@@ -455,21 +482,25 @@
 		  
 			  if(keydown.a) {
 			    this.dir=3;
+				this.animate();
 			    if ((merp.canWalk([this.x-1],[this.y])) && (merp.canWalk([this.x-1],[this.y+1]))) {this.x -= 1;}
 			  }
 			
 			  if(keydown.d) {
 			    this.dir=1;
+				this.animate();
 				if ((merp.canWalk([this.x+2],[this.y])) && (merp.canWalk([this.x+2],[this.y+1]))) {this.x += 1;}
 			  }
 			  
 			  if(keydown.w) {
 			    this.dir=0;
+				this.animate();
 				if ((merp.canWalk([this.x],[this.y-1])) && (merp.canWalk([this.x+1],[this.y-1]))) {this.y -= 1;}
 			  }
 			
 			  if(keydown.s) {
 			    this.dir=2;
+				this.animate(); 
 				if ((merp.canWalk([this.x],[this.y+2])) && (merp.canWalk([this.x+1],[this.y+2]))) {this.y += 1;}
 			  }
 			  this.x = this.x.clamp(0, MAP_WIDTH-1);
@@ -666,6 +697,8 @@
 			
 			I.drawRadar= function (cam,x,y,px,py) {
 				cam.check();
+				canvas.save();
+				canvas.globalAlpha = 0.75;
 				for (i=0;i<MAP_WIDTH; i++){
 					for (j=0;j<MAP_HEIGHT; j++){
 						  canvas.fillStyle = bColors[I.tiles[i][j].data];
@@ -675,6 +708,7 @@
 				}
 				canvas.fillStyle = "#FFD700";
 				canvas.fillRect(x+px*2, y+py*2, 4, 4);
+				canvas.restore();
 			};
 		    return I;
         }
@@ -731,7 +765,7 @@
 			tempx=I.x*16;
 			tempy=I.y*16;
 			//alert("");
-		  if((tempx > targ.x*16) && (tempx <targ.x*16+32) && (tempy > targ.y*16) && (tempy <targ.y*16+32)) {
+		  if((tempx > targ.x*16) && (tempx <targ.x*16+targ.width) && (tempy > targ.y*16) && (tempy <targ.y*16+targ.height)) {
 		    I.active=false;
 			return true;
 			
@@ -817,6 +851,8 @@
 	}, false);
 		
 		document.getElementById("myAudio").play();
+		
+		player.init();
 	//------------MAIN-----------------------------------------
         function update() {
 		
@@ -1025,7 +1061,7 @@
 		 
 		  maps.forEach(function(imap) {
             //imap.draw(camera);
-			imap.drawRadar(camera, 580, 466,player.x,player.y);
+			imap.drawRadar(camera, 645, 466,player.x,player.y);
          });
         }
         
@@ -1069,11 +1105,12 @@
           // Extra Credit: Add an explosion graphic and then end the game
         };
         
-        player.sprite = Sprite("player");
+        //player.sprite = Sprite("player");
+		
         
         player.draw = function(cam) {
 		  //canvas.globalCompositeOperation = 'source-in';
-          this.sprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+          this.sprites[this.dir][this.ani].draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 		  this.drawsword(cam);
 		  //canvas.globalCompositeOperation = 'source-over';
         };
