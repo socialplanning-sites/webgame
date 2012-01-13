@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
   <head>
-    <title>Oh also arrow keys move the camera.</title>
+    <title>Yaaaar</title>
     <link href="/stylesheets/screen.css" media="all" rel="stylesheet" type="text/css"/>
     <script language="javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type="text/javascript"></script><script language="javascript" src="javascripts/jquery.hotkeys.js" type="text/javascript"></script><script language="javascript" src="javascripts/key_status.js" type="text/javascript"></script><script language="javascript" src="javascripts/util.js" type="text/javascript"></script><script language="javascript" src="javascripts/sprite.js" type="text/javascript"></script><script language="javascript" src="javascripts/sound.js" type="text/javascript"></script>
   </head>
@@ -47,6 +47,8 @@
 		var plankssprite = Sprite("woodplanks");
 		var edsprite = Sprite("cursor");
 		var shroomsprite = Sprite("shroom");
+		var heartsprite = Sprite("heart");
+		var halfheartsprite = Sprite("halfheart");
 		Mode = 1;
 		var playerBullets = [];
 		//var keyboard = [];
@@ -307,21 +309,41 @@
           x: 6,
           y: 53,
 		  dir: 0,
+		  maxhp:100,
+		  hp:100,
+		  mp:40,
+		  gothurt: 0,
+		  maxmp:40,
 		  type: 0,
 		  hp: 100,
-          width: 32,
-		  active: false,
-          height: 32,
+          width: 140,
+		  active: true,
+          height: 140,
 		  angle: 0,
 		  sprite: Sprite("smedly"),
 		  draw: function(cam) {
-		    //canvas.save();
-			//canvas.scale(2,1);
-			//canvas.rotate(Math.PI* this.angle);
+			if (this.gothurt>0) {
+				this.gothurt--;
+				canvas.save();
+				if(this.gothurt%2==0){canvas.globalAlpha = 0.75;}
+				this.sprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+				canvas.restore();
+			}else
+			{
             this.sprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+			}
 			//canvas.restore();
 			//canvas.scale(-2,-2);
 		  },
+		  
+		   hurt: function(dmg) {
+		    if(this.gothurt>0) {return;}
+			this.hp-=dmg;
+			if (this.hp<1) {this.active=false;}
+			//knockback?
+			//Sound.play("explosion");
+			this.gothurt=5;
+          },
         
           update: function() {
 			this.angle++;
@@ -343,11 +365,16 @@
           x: 30,
           y: 20,
 		  dir: 0,
+		  maxhp:50,
+		  hp:50,
+		  mp:20,
+		  maxmp:20,
 		  type: 0,
           width: 32,
           height: 32,
 		  ani: 0,
 		  kills: 0,
+		  gothurt: 0,
 		  swordlen: 12,
 		  swordwidth: 4,
 		  swordspeed: 1,
@@ -373,6 +400,40 @@
 			this.sprites[3][0]= Sprite("bearl1");
 			this.sprites[3][1]= Sprite("bearl2");
 		  },
+		  
+		  checkCollide: function(targ) {
+			tempx=this.x*16+16;
+			tempy=this.y*16+16;
+			if((tempx > targ.x*16) && (tempx <targ.x*16+targ.width) && (tempy > targ.y*16) && (tempy <targ.y*16+targ.height)) {
+		       //alert("");
+			   return true;
+		    }
+			return false;
+		  },
+		  
+		  drawHearts: function() {
+			  conts=this.hp/20;
+			  for(h=0;h<conts-1;h++)
+			  {
+				heartsprite.draw(canvas,100+h*16+h*2, 20);
+			  }
+			  if(this.hp%20==0)
+			  {
+			     heartsprite.draw(canvas,100+h*16+h*2, 20);
+			  }else{
+				 halfheartsprite.draw(canvas,100+h*16+h*2, 20);
+			  }
+		  },
+		  
+		  hurt: function(dmg) {
+		    if(this.gothurt>0) {return;}
+			this.hp-=dmg;
+			if (this.hp<1) {this.active=false;}
+			//knockback?
+			//Sound.play("explosion");
+			this.gothurt=5;
+          },
+		  
 		  hitsword: function (px,py,pw,ph){
 		        if(!this.swordactive) {return false;} //todo: change this to check rectangle not just end point.
 				if(this.dir==0){
@@ -411,6 +472,7 @@
 				}
 				return false;
 			},
+
           drawsword: function(cam){
 		  		
 				canvas.fillStyle = "#7CFC00";
@@ -443,6 +505,18 @@
 				this.ani=0;
 			}
 		  },
+		  
+		  update: function() {
+            
+            if(this.hp<1) {this.kill();}
+
+          },
+		  
+		  kill: function() {
+            
+            //TODO: death animation, game over
+
+          },
 		  
 		  draw: function(cam) {
             canvas.fillStyle = bColors[this.type];
@@ -856,7 +930,7 @@
 	//------------MAIN-----------------------------------------
         function update() {
 		
-		if (player.hitsword(5,5,20,20)) {alert ("hit it!");}
+		//if (player.hitsword(5,5,20,20)) {alert ("hit it!");}
 		
 		    anicount++;
 			if (anicount>anirate) {
@@ -955,14 +1029,22 @@
 			 }
 		  }
         ////process things
-			  playerBullets.forEach(function(bullet) {  
+			playerBullets.forEach(function(bullet) {  
 				bullet.update(maps[0]);
-			  });
+			});
+			  
+			if (Smedly.active) {
+				if (player.hitsword(Smedly.x,Smedly.y,Smedly.width,Smedly.height)){ 
+				Smedly.hurt(10);
+				//alert ("hit smedly");
+				}
+			}
+			  
 		  stuff.forEach(function(thing) {
             thing.update(player);
           });
 		  if(!stuff[0]) {gotall=true;}
-		  if((gotall) && (player.kills>4))
+		  if((gotall) && (player.kills>4) && (Smedly.hp>0))
 		  { 
 			Smedly.active=true;
 			gotall=false;
@@ -1014,7 +1096,7 @@
           };
         };
         
-        function draw() {
+        function draw() { //MAIN RENDER FUNCTION
           canvas.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
 		  
@@ -1059,6 +1141,8 @@
 		
 		 }
 		 
+		 player.drawHearts();
+		 
 		  maps.forEach(function(imap) {
             //imap.draw(camera);
 			imap.drawRadar(camera, 645, 466,player.x,player.y);
@@ -1081,14 +1165,12 @@
                 bullet.active = false;
 				player.kills++;
               }
+			  
             });
           });
         
           enemies.forEach(function(enemy) {
-            if(collides(enemy, player)) {
-              enemy.explode();
-              player.explode();
-            }
+			if(player.checkCollide(enemy)) {player.hurt(5);}
 			if(player.hitsword(enemy.x,enemy.y,32,32)) {
 			enemy.explode();
 			player.kills++;
@@ -1098,6 +1180,7 @@
         
 		if(Smedly.active){
 			Smedly.update();
+			if(player.checkCollide(Smedly)) {player.hurt(10);}
 			}
 		
         player.explode = function() {
@@ -1110,7 +1193,17 @@
         
         player.draw = function(cam) {
 		  //canvas.globalCompositeOperation = 'source-in';
-          this.sprites[this.dir][this.ani].draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+		  	if (this.gothurt>0) {
+				this.gothurt--;
+				canvas.save();
+				if(this.gothurt%2==0){canvas.globalAlpha = 0.5;}
+				this.sprites[this.dir][this.ani].draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+				canvas.restore();
+			}else
+			{
+				this.sprites[this.dir][this.ani].draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+			}
+		
 		  this.drawsword(cam);
 		  //canvas.globalCompositeOperation = 'source-over';
         };
