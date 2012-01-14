@@ -221,6 +221,8 @@
 		    
 			this.x= px;
 			this.y= py;
+			this.xVelocity=0;
+			this.yVelocity=0;
 			this.type=tipe;
 			this.active= true;
 			this.width= 32;
@@ -228,6 +230,12 @@
 			this.sprite= Sprite("shroom");
 			if (this.type==1) {
 				this.sprite= Sprite("heart");
+			}else if (this.type==2) {
+				this.sprite= Sprite("gold");
+			}else if (this.type==3) {
+				this.sprite= Sprite("silver");
+			}else if (this.type==4) {
+				this.sprite= Sprite("copper");
 			}
 			this.collectable= true;
 			this.setSprite= function(name) {
@@ -248,7 +256,12 @@
 					this.active=false;
 					if (this.type==0) {ply.heal(10);}  //mushroom heals
 					if (this.type==1) {ply.maxhp+=20; ply.hp=ply.maxhp;}  //heart container
+					if (this.type==2) {ply.pay(100);} //gold
+					if (this.type==3) {ply.pay(10);}  //silver
+					if (this.type==4) {ply.pay(1);} //copper
 					}
+				this.x += this.xVelocity;
+                this.y += this.yVelocity;
 			};
             return this;
 		}
@@ -381,6 +394,8 @@
           width: 32,
           height: 32,
 		  ani: 0,
+		  cash: 0,
+		  maxcash: 200,
 		  kills: 0,
 		  gothurt: 0,
 		  swordlen: 12,
@@ -448,6 +463,14 @@
 			//graphic?
 			//Sound.play("explosion");
           },
+		  
+		  pay: function(dmg) {
+		    this.cash+=dmg;
+			if (this.cash>this.maxcash) {this.cash=this.maxcash;}
+			//graphic?
+			//Sound.play("ca-ching");
+          },
+		  
 		  
 		  hitsword: function (px,py,pw,ph){
 		        if(!this.swordactive) {return false;} //todo: change this to check rectangle not just end point.
@@ -800,6 +823,23 @@
 			};
 		    return I;
         }
+		       
+	   maps = [];
+		maps.push(Map());
+		maps[0].loadDefaultTiles();
+		for(ijk=0;ijk<32;ijk++)
+		{
+			
+			tempx=Math.floor(Math.random() *(MAP_WIDTH-2));
+			tempy=Math.floor(Math.random() *(MAP_HEIGHT-2));
+			if(maps[0].tiles[tempx][tempy].data==0) {
+				stuff.push(new thing(0,tempx,tempy));
+			}
+		}
+		stuff.push(new thing(1,50,65));
+		stuff.push(new thing(2,10,65));
+		stuff.push(new thing(3,20,65));
+		stuff.push(new thing(4,30,65));
 		
 		
         function Bullet(I) {
@@ -852,7 +892,6 @@
 		  I.checkHit= function(targ) {
 			tempx=I.x*16;
 			tempy=I.y*16;
-			//alert("");
 		  if((tempx > targ.x*16) && (tempx <targ.x*16+targ.width) && (tempy > targ.y*16) && (tempy <targ.y*16+targ.height)) {
 		    I.active=false;
 			return true;
@@ -866,8 +905,7 @@
         }
         
         enemies = [];
-        maps = [];
-		maps.push(Map());
+
         function Enemy(I) {
           I = I || {};
         
@@ -908,7 +946,7 @@
         
           I.explode = function() {
             Sound.play("explosion");
-        
+			stuff.push(new thing(4,Math.round(I.x),Math.round(I.y)));
             this.active = false;
             // Extra Credit: Add an explosion graphic
           };
@@ -921,17 +959,8 @@
           update();
           draw();
         }, 1000/FPS);
-		maps[0].loadDefaultTiles();
-		for(ijk=0;ijk<32;ijk++)
-		{
-			
-			tempx=Math.floor(Math.random() *(MAP_WIDTH-2));
-			tempy=Math.floor(Math.random() *(MAP_HEIGHT-2));
-			if(maps[0].tiles[tempx][tempy].data==0) {
-				stuff.push(new thing(0,tempx,tempy));
-			}
-		}
-		stuff.push(new thing(1,50,65));
+
+		
 		
 	document.getElementById("myAudio").addEventListener('ended', function() {
     this.currentTime = 0;
