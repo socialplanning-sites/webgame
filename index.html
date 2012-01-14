@@ -1,3 +1,509 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+  <head>
+    <title>Yaaaar</title>
+    <link href="/stylesheets/screen.css" media="all" rel="stylesheet" type="text/css"/>
+    <script language="javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type="text/javascript"></script><script language="javascript" src="javascripts/jquery.hotkeys.js" type="text/javascript"></script><script language="javascript" src="javascripts/key_status.js" type="text/javascript"></script><script language="javascript" src="javascripts/util.js" type="text/javascript"></script><script language="javascript" src="javascripts/sprite.js" type="text/javascript"></script><script language="javascript" src="javascripts/sound.js" type="text/javascript"></script>
+  </head>
+  <body>
+  	<audio id="myAudio">
+    <source src="songu.mp3" type="audio/mpeg" />
+    Your browser does not support the audio element.
+    </audio>
+    <h1>Hit H for controls. </h1>
+
+    <script type='text/javascript'>
+      //<![CDATA[
+        var CANVAS_WIDTH = 900;
+        var CANVAS_HEIGHT = 640;
+		var MAP_WIDTH = 120;
+        var MAP_HEIGHT = 80;
+        var FPS = 30;
+		//var keychart = ["w","a","d","s","up","right","down","left","m","n","shift"];
+		var darkgrasssprite = Sprite("darkgrass"); //begin loading images.  Eventually I should put them all on one .png file
+		var grasssprite = Sprite("grass");
+		var watersprite = Sprite("water");
+		var lavasprite=[];
+  		lavasprite[0] = Sprite("lava");
+		lavasprite[1] = Sprite("lava1");
+		lavasprite[2] = Sprite("lava2");
+		lavasprite[3] = Sprite("lava3");
+		lavasprite[4] = Sprite("lava4");
+		var rocksprite = Sprite("stone2");
+		var stonebricksprite = Sprite("stonewall");
+		var bricksprite = Sprite("brick");
+		var dirtsprite = Sprite("dirt");
+		var woodsprite = Sprite("wood");
+		var crystalsprite = Sprite("crystalfloor");
+		var mudsprite = Sprite("mud");
+		var obsidiansprite = Sprite("obsidian");
+		var mossysprite = Sprite("mossy");
+		var stonesprite = Sprite("stone");
+		var reddoorsprite = Sprite("reddoor");
+		var greendoorsprite = Sprite("greendoor");
+		var bluedoorsprite = Sprite("bluedoor");
+		var claysprite = Sprite("clay");
+		var pedastalsprite = Sprite("pedastal");
+		var wtfsprite = Sprite("wtf");
+		var cobblesprite = Sprite("cobblestone");
+		var plankssprite = Sprite("woodplanks");
+		var edsprite = Sprite("cursor");
+		var shroomsprite = Sprite("shroom");
+		var heartsprite = Sprite("heart");
+		var halfheartsprite = Sprite("halfheart");
+		var redkeysprite= Sprite("redkey");
+		var greenkeysprite= Sprite("greenkey");
+		var bluekeysprite= Sprite("bluekey");
+		var goldsprite =Sprite("gold");
+		Mode = 0;
+		var playerBullets = [];
+
+		var NUM_TILES=20; //numer of tile types
+
+        var canvasElement = $("<canvas width='" + CANVAS_WIDTH + 
+          "' height='" + CANVAS_HEIGHT + "'></canvas");
+        var canvas = canvasElement.get(0).getContext("2d");
+        canvasElement.appendTo('body');
+        //todo:  find some way to put this in map or tile?
+        var tileani=0;
+		var anicount=0;
+		var anirate=10;
+		var gotall=false;
+
+	
+			
+		function akey(k) {  //represents a keyboard button
+		    k = k || "space";
+			this.key =k;
+			this.aflag=false;
+			this.check= function(){
+				if (keydown[this.key]) { 
+					this.aflag=true;
+					return false;
+				}
+				if((!keydown[this.key]) && (this.aflag==true)){
+					this.aflag=false;
+					return true;
+				}
+		    };
+			return this;
+		}
+		
+		function textbox(msg) {  //draws a text box
+				canvas.save();
+				canvas.globalAlpha=0.80;
+				canvas.fillStyle = "#DCDCDC";
+				canvas.fillRect(30,400,840,210);
+			
+				canvas.fillStyle = "#483D8B "
+				canvas.fillRect(40,410,820,190);
+		
+				canvas.font = "16pt Calibri";
+				canvas.textAlign = "left";
+				canvas.textBaseline = "middle";
+				canvas.fillStyle = "white";
+				canvas.fillText(msg, 60,410+15);
+					
+				canvas.restore();
+		};
+		
+		function drawmousetext(targ,cam) { //draws unit status info
+				canvas.font = "14pt Calibri";
+				canvas.textAlign = "center";
+				canvas.textBaseline = "middle";
+				canvas.fillStyle = "yellow";
+				tempstr = targ.name+": "+targ.hp+ " / " +targ.maxhp;
+				canvas.fillText(tempstr, (targ.x-cam.x)*16+(targ.width/2), (targ.y-cam.y)*16+targ.height+8);
+					
+				canvas.fillStyle = "#5F9EA0";
+		};
+		
+		function aMouse() {  //represents the mouse
+			this.mX= 0;
+			this.mY= 0;
+			this.lastY=0;
+			this.lastX=0;
+			this.tx= 0;
+			this.ty= 0;
+			this.mDelta=0;
+			this.wasWheeled= false;
+			this.mouseIsDown= false;
+		
+			
+			mouseXY= function(e) {
+				if (!e) var e = event;
+				mX = e.pageX - canvasElement.get(0).offsetLeft;
+				mY = e.pageY - canvasElement.get(0).offsetTop;
+			
+			};
+			
+			isOver= function(targ,cam){ //is the mouse over the player/enemy/object
+				if((mX>(targ.x-cam.x)*16) && (mX<(targ.x-cam.x)*16+targ.width) &&(mY>(targ.y-cam.y)*16) &&(mY<(targ.y-cam.y)*16+targ.height)) {return true;}
+				return false;
+			};
+			
+			this.startStroke= function(e) { //mousewheel
+				if (!e) var e = event;
+				mDelta=e.wheelDelta;
+				wasWheeled=true;
+				
+			};
+			
+			this.touchXY= function(e) { //touchsreen TODO: this
+				if (!e) var e = event;
+				e.preventDefault();
+				mX = e.targetTouches[0].pageX - canvasElement.get(0).offsetLeft;
+				mY = e.targetTouches[0].pageY - canvasElement.get(0).offsetTop;
+
+			};
+			
+			mouseUp= function(e) {
+				if (!e) var e = event;
+				mouseIsDown = 0;
+				mouseXY(e);
+			};
+
+			touchUp= function() {
+				mouseIsDown = 0;
+				//do something.
+			};
+
+			mouseDown= function(e) {
+				if (!e) var e = event;
+
+				mouseIsDown = 1;
+				mouseXY(e);
+				lastX=tx;
+				lastY=ty;
+				tx=Math.floor(this.mX/16);
+				ty=Math.floor(this.mY/16);
+
+			};
+
+			this.touchDown= function() {
+				mouseIsDown = 1;
+				//do something();
+			};
+			return this;
+        }
+		
+		var Mouse= aMouse();
+		
+		canvasElement.get(0).addEventListener("mousewheel",Mouse.startStroke,false);
+		canvasElement.get(0).addEventListener("mousemove", Mouse.mouseXY, false);
+		canvasElement.get(0).addEventListener("mousedown", Mouse.mouseDown, false);
+
+		canvasElement.get(0).addEventListener("touchstart", Mouse.touchDown, false);
+		canvasElement.get(0).addEventListener("touchmove", Mouse.touchXY, true);   //TODO: Implement touch screen functions
+        canvasElement.get(0).addEventListener("touchend", Mouse.touchUp, false);
+ 
+		document.body.addEventListener("mouseup", Mouse.mouseUp, false);
+		document.body.addEventListener("touchcancel", Mouse.touchUp, false);
+		
+		var savekey=new akey("o"); //define the different keys
+		var loadkey=new akey("l");
+		var upkey=new akey("w");
+		var leftkey=new akey("a");
+		var downkey=new akey("s");
+		var rightkey=new akey("d");
+	    var wkey=new akey("up");
+		var dkey=new akey("right");
+		var skey=new akey("down");
+		var aakey=new akey("left");
+		var modekey=new akey("m");
+		var nkey=new akey("n");
+		var shiftkey=new akey("shift");
+		var helpkey=new akey("h");
+		var slowkey=new akey("b");
+		var cmousekey=new akey("v");
+	    var defkey=new akey("q");
+		
+		var stuff=[];
+		
+		var camera = {  //represents the camera, aka what part of the map is on screen
+		    x: 0,
+			y: 0,
+			width: 60,
+			height: 40,
+			center: function(targ) {
+			    tx=targ.x-26;
+				ty=targ.y-20;
+				if (tx<0) {tx=0;}
+				if (ty<0) {ty=0;}
+				if (tx>MAP_WIDTH-60) {tx=MAP_WIDTH-60;}
+				if (ty>MAP_HEIGHT-40) {ty=MAP_HEIGHT-40;}
+
+				this.x=tx;
+				this.y=ty;
+			},
+			check: function() {
+			    this.x.clamp(0, MAP_WIDTH-60);
+				this.y.clamp(0, MAP_HEIGHT-40);
+			},
+			rX: function(fx)
+			{
+				return fx-this.x;
+			},
+			rY: function(fy)
+			{
+				return fy-this.y;
+			}
+		};
+			
+		function thing(tipe,px,py) {  //represents collectable objects
+		    
+			this.x= px;
+			this.y= py;
+			this.xVelocity=0;
+			this.yVelocity=0;
+			this.type=tipe;
+			this.active= true;
+			this.width= 32;
+			this.height= 32;
+			this.name="Shroom";
+			this.sprite= Sprite("shroom");
+			if (this.type==1) {
+				this.sprite= Sprite("heart");
+				this.name="Heart Cointainer";
+			}else if (this.type==2) {
+				this.sprite= Sprite("gold");
+				this.name="Gold Coin";
+			}else if (this.type==3) {
+				this.sprite= Sprite("silver");
+				this.name="Silver Coin";
+			}else if (this.type==4) {
+				this.sprite= Sprite("copper");
+				this.name="Copper Coin";
+			}else if (this.type==5) {
+				this.sprite= Sprite("manapotion");
+				this.name="Mana Potion";
+			}else if (this.type==6) {
+				this.sprite= Sprite("manaup");
+				this.name="Max Mana Up";
+			}else if (this.type==7) {
+				this.sprite= Sprite("redkey");
+				this.name="Red Key";
+			}else if (this.type==8) {
+				this.sprite= Sprite("bluekey");
+				this.name="Blue Key";
+			}else if (this.type==9) {
+				this.sprite= Sprite("greenkey");
+				this.name="Green Key";
+			}else if (this.type==15) {
+				this.sprite= Sprite("woodensword");
+				this.name="Wooden Sword";
+			}else if (this.type==16) {
+				this.sprite= Sprite("flippers");
+				this.name="Flippers";
+			}
+			this.collectable= true;
+			this.setSprite= function(name) {
+				this.sprite= Sprite(name);
+			};
+			this.draw= function(cam) {
+				this.sprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+			};
+			this.colision= function(that) {
+			    if( ((this.x==that.x) ||(this.x==that.x+1))&& ((this.y==that.y) || (this.y==that.y+1)) ) {
+				     this.active=false;
+					 return true;
+				}
+				return false;
+			};
+			this.update=function(ply) {
+				if(this.colision(ply)) { //TODO: hold over head ala zelda?
+					this.active=false;
+					if (this.type==0) {ply.heal(10);}  //mushroom heals
+					if (this.type==1) {ply.maxhp+=20; ply.hp=ply.maxhp;}  //heart container //sound!
+					if (this.type==2) {ply.pay(25);} //gold
+					if (this.type==3) {ply.pay(10);}  //silver
+					if (this.type==4) {ply.pay(1);} //copper
+					if (this.type==5) {ply.MP(15);} //mana potion
+					if (this.type==6) {ply.maxmp+=20; ply.mp=ply.maxmp;} //mana increase
+					if (this.type==7) {ply.key[0]=true;}  //redkey
+					if (this.type==8) {ply.key[1]=true;} //blue key
+					if (this.type==9) {ply.key[2]=true;} //green key
+					if (this.type==15) {ply.sword=woodsword;} //green key
+					if (this.type==16) {ply.flippers=true;} //green key
+					}
+				this.x += this.xVelocity;
+                this.y += this.yVelocity;
+			};
+            return this;
+		}
+		
+
+	    
+        var bColors = ["#008000","#006400", "#FF4500", "#000080", "#696969", "#800080", "#808000", "#A52A2A", "#8B4513", "#FFDEAD", "#FFFF40","#000080" , "#FFFF80"]; //list of colors for radar/a few other things
+		
+		function makeNewTile() { //the Map is made of a 2D array of tiles.
+		    var tile = {
+                width: 16,
+				height: 16,
+				x: 0,
+				y: 0,
+				ani:0,
+				color: "#FFC020",
+				data: 0,
+				draw: function(cam) { 
+				    if(this.data==0){
+					   grasssprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==1){
+					   darkgrasssprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==2){
+					   lavasprite[tileani].draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==3){
+					   watersprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==4){
+					   stonesprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==5){
+					   obsidiansprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==6){
+					   mudsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==7){
+					   bricksprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==8){
+					   woodsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==9){
+					   crystalsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16); //todo: duplicate! add new type
+					}else if(this.data==10){
+					   mossysprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==11){
+					   stonebricksprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==12){
+					   plankssprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==13){
+					   cobblesprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16); //todo: duplicate! add new type
+					}else if(this.data==14){
+					   dirtsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==15){
+					   claysprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==16){
+					   wtfsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==17){
+					   pedastalsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==18){
+					   reddoorsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==19){
+					   bluedoorsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.data==20){
+					   greendoorsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					 }else{  //if strange data, draw a solid color
+				       canvas.fillStyle = bColors[0]; 
+					   canvas.fillRect((this.x-cam.x)*this.width, (this.y-cam.y)*this.height, this.width, this.height);
+					}
+				}
+				};
+			
+            return tile;
+		};
+		
+		var Wizard = {  //an NPC
+		  name: "Wizard",
+          color: "#00A",
+          x: 11,
+          y: 13,
+		  dir: 0,
+		  maxhp:100,
+		  hp:100,
+		  mp:400,
+		  gothurt: 0,
+		  maxmp:400,
+		  type: 0,
+		  hp: 100,
+          width: 32,
+		  active: true,
+          height: 32,
+		  angle: 0,
+		  sprite: Sprite("wizard"),
+		  draw: function(cam) {
+			if (this.gothurt>0) {
+				this.gothurt--;
+				canvas.save();
+				if(this.gothurt%2==0){canvas.globalAlpha = 0.75;}
+				this.sprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+				canvas.restore();
+			}else
+			{
+            this.sprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+			}
+
+		  },
+
+        
+		  };
+		
+		var Smedly = { //the first boss, currently has no AI
+		  name: "Smedly",
+          color: "#00A",
+          x: 6,
+          y: 53,
+		  dir: 0,
+		  maxhp:100,
+		  hp:100,
+		  mp:40,
+		  gothurt: 0,
+		  maxmp:40,
+		  type: 0,
+		  hp: 100,
+          width: 140,
+		  active: true,
+          height: 140,
+		  angle: 0,
+		  sprite: Sprite("smedly"),
+		  draw: function(cam) {
+			if (this.gothurt>0) {
+				this.gothurt--;
+				canvas.save();
+				if(this.gothurt%2==0){canvas.globalAlpha = 0.75;}
+				this.sprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+				canvas.restore();
+			}else
+			{
+            this.sprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+			}
+			if(Mouse.isOver(this,cam)) {drawmousetext(this,cam);}
+		  },
+		  
+		   hurt: function(dmg) {
+		    if(this.gothurt>0) {return;}
+			this.hp-=dmg;
+			if (this.hp<1) {this.active=false;}
+			//TODO:knockback?
+			//TODO:Sound.play("hurt");
+			this.gothurt=5;
+          },
+        
+          update: function() {
+			//todo: Smedly AI
+       
+          },
+        
+          explode: function() {
+            Sound.play("explosion");
+        
+            this.active = false;
+            // TODO: Add an explosion graphic
+          }
+        
+		  };
+				  
+		var woodsword= { //the first sword
+		  len: 17,
+		  width: 4,
+		  speed: 6,
+		  track: 0,
+		  color: "#663300",
+		  count: 0,
+		  dmg: 10,
+		  active: false,
+		  going: true
+		  };
+		  
+		var nosword= { //the first sword
+		  len: 0,
+		  width: 4,
+		  speed: 2,
 		  track: 0,
 		  color: "#00A",
 		  count: 0,
@@ -16,7 +522,7 @@
 		  mp:20,
 		  maxmp:20,
 		  type: 0,
-		  flippers: true,  
+		  flippers: false,  
           width: 32,
           height: 32,
 		  ani: 0,
@@ -27,7 +533,7 @@
 		  key: Array(10),
 		  sword: 0,
 		  init: function () {  //load sprites
-		    this.sword=woodsword;
+		    this.sword=nosword;
 			this.sprites=new Array(4); //4 directions
 			this.sprites[0] = new Array(2);  //2 frames
 			this.sprites[1] = new Array(2);
@@ -179,7 +685,7 @@
 
           drawsword: function(cam){
 		  		
-				canvas.fillStyle = "#7CFC00";
+				canvas.fillStyle = this.sword.color;
 				if(this.dir==0){
 					
 					canvas.fillRect((this.x-cam.x)*16+16, (this.y-cam.y)*16, this.sword.width, -this.sword.track*2);
@@ -531,7 +1037,9 @@
 		stuff.push(new thing(3,52,26));
 		stuff.push(new thing(4,55,26));
 		stuff.push(new thing(7,79,56));
-		stuff.push(new thing(9,100,26));
+		stuff.push(new thing(9,37,32));
+		stuff.push(new thing(15,11,16));
+		stuff.push(new thing(16,52,24));
 		
 		
         function Bullet(I) {  //player fired projectile
@@ -785,7 +1293,7 @@
 			}
 
 			  if(helpkey.check()){
-			    alert("Arrow keys = move player, Space = shoot, Q=Sword M= switch to edit mode");
+			    alert("WASD = move bear, Arrow keys = move camera, Space = shoot, Q=Sword M= switch to edit mode");
 			 }
 		  }
         ////process things
@@ -846,4 +1354,133 @@
 		  bulletPosition.x=this.x+1;
 		  bulletPosition.y=this.y+1;
         
+          playerBullets.push(Bullet({ 
+            speed: 1,
+			dir: this.dir,
+            x: bulletPosition.x,
+            y: bulletPosition.y
+          }));
+        };
         
+        
+        function draw() { //Main render function
+          canvas.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+		  
+		 maps.forEach(function(imap) {
+            imap.draw(camera);
+	     });
+		 		 
+
+		 if(Mode==1) { edcursor.draw(camera);}
+          
+          playerBullets.forEach(function(bullet) {
+            bullet.draw(camera);
+          });
+		  
+		  stuff.forEach(function(thing) {
+            thing.draw(camera);
+          });
+		  
+          enemies.forEach(function(enemy) {
+            enemy.draw(camera);
+          });
+		  
+		if(Smedly.active){
+			Smedly.draw(camera);
+		}
+		  
+		player.draw(camera);
+				 
+				 
+         //cover player in grass or water if neccisary
+		 if(maps[0].tiles[player.x][player.y+1].data==1) {
+			darkgrasssprite.draw(canvas, (player.x-camera.x)*16, (player.y-camera.y+1)*16);
+		
+		 }//todo work this into person.draw, so it work for all npcs
+		  if(maps[0].tiles[player.x+1][player.y+1].data==1) {
+			darkgrasssprite.draw(canvas, (player.x-camera.x+1)*16, (player.y-camera.y+1)*16);
+		
+		 }
+		 
+		 canvas.save();
+		 canvas.globalAlpha=.60;
+		  if(maps[0].tiles[player.x][player.y+1].data==3) {
+			watersprite.draw(canvas, (player.x-camera.x)*16, (player.y-camera.y+1)*16);
+		
+		 }//todo work this into person.draw, so it work for all npcs
+		  if(maps[0].tiles[player.x+1][player.y+1].data==3) {
+			watersprite.draw(canvas, (player.x-camera.x+1)*16, (player.y-camera.y+1)*16);
+		
+		 }
+		 canvas.restore();
+		 
+		 Wizard.draw(camera);
+		 player.drawHearts();
+		 player.drawmp();
+
+		  maps.forEach(function(imap) {
+			imap.drawRadar(camera, 645, 466,player.x,player.y);
+         });
+           if(Mouse.isOver(Wizard,camera)){
+			   if((Math.abs(player.x-Wizard.x<12)) && Math.abs((player.y-Wizard.y<12)))
+			   {
+					if(player.sword==woodsword)
+					{
+						textbox("Old Man: it is said that across the sea lives an elephant who never forgets....TO KILL!");
+					}else
+					textbox("Old Man: it is dangerous to go alone, take this.");
+			   }
+		   }
+		
+		}
+        
+	      
+        function handleCollisions() {
+          playerBullets.forEach(function(bullet) {
+            enemies.forEach(function(enemy) {
+              if(bullet.checkHit(enemy)) {
+                enemy.hurt(5);
+                bullet.active = false;
+		      }
+           });
+          });
+        
+          enemies.forEach(function(enemy) {
+			if(player.checkCollide(enemy)) {player.hurt(5);}
+			if(player.hitsword(enemy.x,enemy.y,32,32)) {
+			enemy.hurt(player.sword.dmg);
+			}
+          });
+		  
+		  	if(Smedly.active){
+				Smedly.update();
+			if(player.checkCollide(Smedly)) {player.hurt(10);}
+			}
+        }
+        
+        
+        player.draw = function(cam) {
+
+		  	if (this.gothurt>0) {
+				this.gothurt--;
+				canvas.save();
+				if(this.gothurt%2==0){canvas.globalAlpha = 0.5;}
+				this.sprites[this.dir][this.ani].draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+				canvas.restore();
+			}else
+			{
+				this.sprites[this.dir][this.ani].draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+			}
+		
+		  this.drawsword(cam);
+		  
+		  if(Mouse.isOver(player,cam)) {drawmousetext(player,cam);}
+
+        };
+		
+      //]]>
+    </script>
+
+  </body>
+</html>
