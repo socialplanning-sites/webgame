@@ -54,13 +54,13 @@
 		var redkeysprite= Sprite("redkey");
 		var greenkeysprite= Sprite("greenkey");
 		var bluekeysprite= Sprite("bluekey");
+		var goldsprite =Sprite("gold");
 		Mode = 0;
 		var playerBullets = [];
 		//var keyboard = [];
 		//for (l=0;l<10;l++){keyboard.push(akey(keychart[l]));}
 		var NUM_TILES=20;
-		var canX=[];
-		var canY=[];
+
         var canvasElement = $("<canvas width='" + CANVAS_WIDTH + 
           "' height='" + CANVAS_HEIGHT + "'></canvas");
         var canvas = canvasElement.get(0).getContext("2d");
@@ -109,12 +109,12 @@
 		};
 		
 		function drawmousetext(targ,cam) {
-				canvas.font = "12pt Calibri";
+				canvas.font = "14pt Calibri";
 				canvas.textAlign = "center";
 				canvas.textBaseline = "middle";
-				canvas.fillStyle = "blue";
+				canvas.fillStyle = "yellow";
 				tempstr = targ.name+": "+targ.hp+ " / " +targ.maxhp;
-				canvas.fillText(tempstr, (targ.x-cam.x)*16, (targ.y-cam.y)*16+targ.height+5);
+				canvas.fillText(tempstr, (targ.x-cam.x)*16+(targ.width/2), (targ.y-cam.y)*16+targ.height+8);
 					
 				canvas.fillStyle = "#5F9EA0";
 		};
@@ -135,11 +135,13 @@
 				if (!e) var e = event;
 				mX = e.pageX - canvasElement.get(0).offsetLeft;
 				mY = e.pageY - canvasElement.get(0).offsetTop;
-				//alert("mousemoved");
-				canX=mX;
-				canY=mY;
 			
 				//showPos();
+			};
+			
+			isOver= function(targ,cam){
+				if((mX>(targ.x-cam.x)*16) && (mX<(targ.x-cam.x)*16+targ.width) &&(mY>(targ.y-cam.y)*16) &&(mY<(targ.y-cam.y)*16+targ.height)) {return true;}
+				return false;
 			};
 			
 			this.startStroke= function(e) {
@@ -455,8 +457,7 @@
 			{
             this.sprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 			}
-			//canvas.restore();
-			//canvas.scale(-2,-2);
+			if(Mouse.isOver(this,cam)) {drawmousetext(this,cam);}
 		  },
 		  
 		   hurt: function(dmg) {
@@ -494,6 +495,7 @@
 		  mp:20,
 		  maxmp:20,
 		  type: 0,
+		  flippers: true,
           width: 32,
           height: 32,
 		  ani: 0,
@@ -547,10 +549,10 @@
 		  
 		    drawmp: function(){
 			
-				canvas.font = "12pt Calibri";
+				canvas.font = "14pt Calibri";
 				canvas.textAlign = "center";
 				canvas.textBaseline = "middle";
-				canvas.fillStyle = "blue";
+				canvas.fillStyle = "white";
 				canvas.fillText("MP:", 76, 48);
 					
 				canvas.fillStyle = "#5F9EA0";
@@ -558,22 +560,30 @@
 				
 				//todo:MOVE THIS
 				if(this.key[0]){
-					redkeysprite.draw(canvas,15,25);
+					redkeysprite.draw(canvas,7,20);
 				}
 				if(this.key[1]){
-					bluekeysprite.draw(canvas,33,25);
+					bluekeysprite.draw(canvas,25,20);
 				}
 				if(this.key[2]){
-					greenkeysprite.draw(canvas,15,45);
+					greenkeysprite.draw(canvas,7,40);
 				}
+				
+				goldsprite.draw(canvas,655,25);
+				canvas.font = "14pt Calibri";
+				canvas.textAlign = "left";
+				canvas.textBaseline = "middle";
+				canvas.fillStyle = "white";
+				if(player.cash==player.maxcash) {canvas.fillStyle = "blue";}
+				canvas.fillText(":" + player.cash, 670, 32);
 			},
 		  
 		  drawHearts: function() {
 		  
-			canvas.font = "12pt Calibri";
+			canvas.font = "14pt Calibri";
 			canvas.textAlign = "center";
 			canvas.textBaseline = "middle";
-			canvas.fillStyle = "blue";
+			canvas.fillStyle = "white";
 			canvas.fillText("Health:", 70, 25);
 			  conts=this.hp/20;
 			  for(h=0;h<conts-1;h++)
@@ -947,9 +957,9 @@
 					return true;
 					}else {return false;}
 					
-				 }else if ((I.tiles[x][y].data ==2)  || (I.tiles[x][y].data ==3 ) || (I.tiles[x][y].data ==5) || (I.tiles[x][y].data ==7)|| (I.tiles[x][y].data ==8)) {
+				 }else if ((I.tiles[x][y].data ==2)  || ((I.tiles[x][y].data ==3 ) && (!ply.flippers)) || (I.tiles[x][y].data ==5) || (I.tiles[x][y].data ==7)|| (I.tiles[x][y].data ==8)) {
 					return false;
-			 }
+				 }
 			return true;
 			
 			};
@@ -1082,6 +1092,9 @@
         function Enemy(I) {
           I = I || {};
           I.name="Evil Bunny";
+		  I.hp=10;
+		  I.maxhp=10;
+		  I.gothurt=0;
           I.active = true;
           I.age = Math.floor(Math.random() * 128);
           
@@ -1094,6 +1107,13 @@
         
           I.width = 32;
           I.height = 32;
+		  
+		  I.hurt= function(dmg) {
+		    if(I.gothurt>0) {return;}
+			I.hp-=dmg;
+			if (I.hp<1) {I.explode();}
+			I.gothurt=5;
+          },
         
           I.inBounds = function() {
             return I.x >= 0 && I.x <= MAP_WIDTH &&
@@ -1103,7 +1123,17 @@
           I.sprite = Sprite("enemy1");
         
           I.draw = function(cam) {
-            this.sprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+			if (I.gothurt>0) {
+				I.gothurt--;
+				canvas.save();
+				if(I.gothurt%2==0){canvas.globalAlpha = 0.5;}
+				this.sprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+				canvas.restore();
+			}else
+			{
+				this.sprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+			}
+			if(Mouse.isOver(I,cam)) {drawmousetext(I,cam);}
           };
         
           I.update = function() {
@@ -1129,6 +1159,7 @@
 			}else {	stuff.push(new thing(4,Math.round(I.x),Math.round(I.y)));}
             this.active = false;
             // Extra Credit: Add an explosion graphic
+			player.kills++;
           };
         
           return I;
@@ -1179,7 +1210,7 @@
 			  if (Mode==1) {  camera.center(edcursor); }
 			  }
 			  //if(hkey.check()) {alert("NO HELP FOR YOU");}
-		    if (true){ //camera mode
+		    if (true){ //camera controlls
 			 			
 			  if(keydown.left) {
 				camera.x -= 1;
@@ -1220,10 +1251,10 @@
 			  if(helpkey.check()){
 			    alert("W,A,S,D = move cursor, B = toggle speed, Space = Place block, V = Mouse mode toggle, N = switch block, Shift= Center Camera on cursor, M= switch to player mode, O = save map, L= loadmap");
 			 }
-			 
+			
 			 if (edcursor.mouse) {
-				edcursor.x=Math.round(canX/16)+camera.x;
-				edcursor.y=Math.round(canY/16)+camera.y;
+				edcursor.x=Math.round(Mouse.mX/16)+camera.x;
+				edcursor.y=Math.round(Mouse.mY/16)+camera.y;
 				if(Mouse.mouseIsDown){
 				  maps[0].setTile(edcursor.x,edcursor.y,edcursor.type)
 				}
@@ -1364,11 +1395,23 @@
 			darkgrasssprite.draw(canvas, (player.x-camera.x+1)*16, (player.y-camera.y+1)*16);
 		
 		 }
+		 
+		 canvas.save();
+		 canvas.globalAlpha=.60;
+		  if(maps[0].tiles[player.x][player.y+1].data==3) {
+			watersprite.draw(canvas, (player.x-camera.x)*16, (player.y-camera.y+1)*16);
+		
+		 }//todo work this into person.draw, so it work for all npcs
+		  if(maps[0].tiles[player.x+1][player.y+1].data==3) {
+			watersprite.draw(canvas, (player.x-camera.x+1)*16, (player.y-camera.y+1)*16);
+		
+		 }
+		 canvas.restore();
+		 
 		 Wizard.draw(camera);
 		 player.drawHearts();
 		 player.drawmp();
-		 //if(player.checkCollide(Mouse)) {drawmousetext(player,cam);}
-		 drawmousetext(player,camera);
+
 		  maps.forEach(function(imap) {
             //imap.draw(camera);
 			imap.drawRadar(camera, 645, 466,player.x,player.y);
@@ -1391,9 +1434,9 @@
           playerBullets.forEach(function(bullet) {
             enemies.forEach(function(enemy) {
               if(bullet.checkHit(enemy)) {
-                enemy.explode();
+                enemy.hurt(5);
                 bullet.active = false;
-				player.kills++;
+				
               }
 			  
             });
@@ -1402,8 +1445,8 @@
           enemies.forEach(function(enemy) {
 			if(player.checkCollide(enemy)) {player.hurt(5);}
 			if(player.hitsword(enemy.x,enemy.y,32,32)) {
-			enemy.explode();
-			player.kills++;
+			enemy.hurt(10);
+			//player.kills++;
 			}
           });
         }
@@ -1435,6 +1478,8 @@
 			}
 		
 		  this.drawsword(cam);
+		  
+		  if(Mouse.isOver(player,cam)) {drawmousetext(player,cam);}
 
 		  //canvas.globalCompositeOperation = 'source-over';
         };
