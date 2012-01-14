@@ -447,7 +447,7 @@
 		  type: 0,
 		  hp: 100,
           width: 140,
-		  active: true,
+		  active: false,
           height: 140,
 		  angle: 0,
 		  sprite: Sprite("smedly"),
@@ -934,6 +934,15 @@
 					}
 				}
 			};
+			I.clear =function(){
+				for (i=0;i<MAP_WIDTH; i++){
+					for (j=0;j<MAP_HEIGHT; j++){
+						I.tiles[i][j]= makeNewTile();
+						I.tiles[i][j].x=i;
+						I.tiles[i][j].y=j;
+					}
+				}
+			};
 		    I.saveTiles = function (name) {
 			    //var myString = JSON.stringify(I.tiles); //!?!
 				var tempstring= "";
@@ -1030,17 +1039,17 @@
 				stuff.push(new thing(0,tempx,tempy));
 			}
 		}
-		stuff.push(new thing(1,50,65));  //place heart container, keys, gold, etc
-		stuff.push(new thing(5,49,24));
-		stuff.push(new thing(6,55,24));
-		stuff.push(new thing(2,49,26));
-		stuff.push(new thing(3,52,26));
-		stuff.push(new thing(4,55,26));
-		stuff.push(new thing(7,79,56));
-		stuff.push(new thing(9,37,32));
-		stuff.push(new thing(8,80,16));
-		stuff.push(new thing(15,11,16));
-		stuff.push(new thing(16,52,24));
+		stuff.push(new thing(1,50,65));  //place heart container
+		stuff.push(new thing(5,49,24)); //mana potion
+		stuff.push(new thing(6,55,24)); //mana max up
+		stuff.push(new thing(2,49,26)); //gold
+		stuff.push(new thing(3,52,26));  //silver
+		stuff.push(new thing(4,55,26)); //copper coin
+		stuff.push(new thing(7,79,56)); //red key
+		stuff.push(new thing(9,37,32)); //green key
+		stuff.push(new thing(8,80,16)); //blue key
+		stuff.push(new thing(15,11,16)); //wooden sword
+		stuff.push(new thing(16,52,24)); //flippers
 		
 		
         function Bullet(I) {  //player fired projectile
@@ -1249,7 +1258,7 @@
 
 
 		  } if(Mode==1){ //edit mode
-		      if (defkey.check()) {maps[0].loadDefaultTiles();}
+		      if ((defkey.check()) && (keydown.h)) {maps[0].clear()}
 			  if(keydown.space) {
 				maps[0].setTile(edcursor.x,edcursor.y,edcursor.type);
 			  }
