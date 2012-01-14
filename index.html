@@ -7,7 +7,7 @@
   </head>
   <body>
   	<audio id="myAudio">
-    <source src="songu.mp3" type="audio/mpeg" />
+    <source src="song.mp3" type="audio/mpeg" />
     Your browser does not support the audio element.
     </audio>
     <h1>Hit H for controls. </h1>
@@ -51,6 +51,9 @@
 		var shroomsprite = Sprite("shroom");
 		var heartsprite = Sprite("heart");
 		var halfheartsprite = Sprite("halfheart");
+		var redkeysprite= Sprite("redkey");
+		var greenkeysprite= Sprite("greenkey");
+		var bluekeysprite= Sprite("bluekey");
 		Mode = 0;
 		var playerBullets = [];
 		//var keyboard = [];
@@ -466,12 +469,35 @@
 		  },			 
 		  
 		    drawmp: function(){
-		  		
+			
+				canvas.font = "12pt Calibri";
+				canvas.textAlign = "center";
+				canvas.textBaseline = "middle";
+				canvas.fillStyle = "blue";
+				canvas.fillText("MP:", 76, 48);
+					
 				canvas.fillStyle = "#5F9EA0";
 				canvas.fillRect(100, 45, this.mp, 16);
+				
+				//todo:MOVE THIS
+				if(this.key[0]){
+					redkeysprite.draw(canvas,15,25);
+				}
+				if(this.key[1]){
+					bluekeysprite.draw(canvas,33,25);
+				}
+				if(this.key[2]){
+					greenkeysprite.draw(canvas,15,45);
+				}
 			},
 		  
 		  drawHearts: function() {
+		  
+			canvas.font = "12pt Calibri";
+			canvas.textAlign = "center";
+			canvas.textBaseline = "middle";
+			canvas.fillStyle = "blue";
+			canvas.fillText("Health:", 70, 25);
 			  conts=this.hp/20;
 			  for(h=0;h<conts-1;h++)
 			  {
@@ -705,11 +731,11 @@
 					   wtfsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else if(this.type==17){
 					   pedastalsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
-					}else if(this.data==18){
+					}else if(this.type==18){
 					   reddoorsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
-					}else if(this.data==19){
-					   bluedooorsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
-					}else if(this.data==20){
+					}else if(this.type==19){
+					   bluedoorsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+					}else if(this.type==20){
 					   greendoorsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}else{
 				       canvas.fillStyle = bColors[this.data]; 
@@ -1193,7 +1219,8 @@
         }
         
         player.shoot = function() {
-          if (playerBullets.length>9) {return;}
+          if (this.mp<2) {return;}
+		  this.mp-=2;
 		  //Sound.play("shoot");
         
           var bulletPosition = this.midpoint();
