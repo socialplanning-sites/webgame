@@ -12,27 +12,22 @@
 		
 	<audio id="shoot">
     <source src="sounds/shoot.wav" type="audio/wav" />
-    Your browser does not support the audio element.
-    </audio>
+       </audio>
 	
 	<audio id="coin">
     <source src="sounds/coin.wav" type="audio/wav" />
-    Your browser does not support the audio element.
     </audio>
 	
 	<audio id="playerhurt">
     <source src="sounds/playerhurt.wav" type="audio/wav" />
-    Your browser does not support the audio element.
     </audio>
 	
 	<audio id="Enemy_Hit">
     <source src="sounds/Enemy_Hit.wav" type="audio/wav" />
-    Your browser does not support the audio element.
     </audio>
 	
 	<audio id="Enemy_Kill">
     <source src="sounds/Enemy_Kill.wav" type="audio/wav" />
-    Your browser does not support the audio element.
     </audio>
 	
 	<audio id="Item">
@@ -42,22 +37,38 @@
 	
     <audio id="ItemFanfare">
     <source src="sounds/ItemFanfare.wav" type="audio/wav" />
-    Your browser does not support the audio element.
     </audio>
 	
 	<audio id="Key">
     <source src="sounds/Key.wav" type="audio/wav" />
-    Your browser does not support the audio element.
-    </audio>
+      </audio>
 	
     <audio id="HeartContainer">
     <source src="sounds/HeartContainer.wav" type="audio/wav" />
-    Your browser does not support the audio element.
     </audio>
 	
 	<audio id="dying">
     <source src="sounds/dying.wav" type="audio/wav" />
-    Your browser does not support the audio element.
+    </audio>
+	
+	<audio id="Sword4">
+    <source src="sounds/Sword4.wav" type="audio/wav" />
+    </audio>
+	
+	<audio id="Swim">
+    <source src="sounds/Swim.wav" type="audio/wav" />
+    </audio>
+	
+	<audio id="GrassWalk">
+    <source src="sounds/GrassWalk.wav" type="audio/wav" />
+    </audio>
+	
+	<audio id="unlock">
+    <source src="sounds/unlock.wav" type="audio/wav" />
+    </audio>
+	
+	<audio id="locked">
+    <source src="sounds/locked.wav" type="audio/wav" />
     </audio>
 	
     <h1>Hit H for controls. </h1>
@@ -121,8 +132,9 @@
 		var gotall=false;
 		var numsounds=0;
 		var soundsplaying ="";
-		var lastsoundtime=0;
-        var timee=0;
+		var timestamp = new Date(); 
+		var milliseconds = timestamp.getTime();
+		var lasttime=0;
 	
 
 		function playSound(name){
@@ -354,13 +366,32 @@
 			}else if (this.type==9) {
 				this.sprite= Sprite("greenkey");
 				this.name="Green Key";
-			}else if (this.type==15) {
+			}else if (this.type==13) {
 				this.sprite= Sprite("woodensword");
 				this.name="Wooden Sword";
+			}else if (this.type==14) {
+				this.sprite= Sprite("stonesword");
+				this.name="Stone Sword";
+			}else if (this.type==15) {
+				this.sprite= Sprite("ironsword");
+				this.name="Iron Sword";
 			}else if (this.type==16) {
 				this.sprite= Sprite("flippers");
 				this.name="Flippers";
+			}else if (this.type==17) {
+				this.sprite= Sprite("bomb");
+				this.name="Bomb";
+			}else if (this.type==18) {
+				this.sprite= Sprite("hammer");
+				this.name="Hammer";
+			}else if (this.type==19) {
+				this.sprite= Sprite("book");
+				this.name="Book";
+			}else if (this.type==20) {
+				this.sprite= Sprite("boots");
+				this.name="Boots";
 			}
+			
 			this.collectable= true;
 			this.setSprite= function(name) {
 				this.sprite= Sprite(name);
@@ -388,9 +419,23 @@
 					if (this.type==7) {ply.key[0]=true;playSound("Key"); }  //redkey
 					if (this.type==8) {ply.key[1]=true; playSound("Key");} //blue key
 					if (this.type==9) {ply.key[2]=true; playSound("Key");} //green key
-					if (this.type==15) {ply.sword=woodsword; playSound("ItemFanfare");} //sword
+					if (this.type==13) {ply.sword=woodsword; playSound("ItemFanfare");} //sword
+					if (this.type==14) {ply.sword=stonesword; playSound("ItemFanfare");} //stone sword
+					if (this.type==15) {ply.sword=ironsword; playSound("ItemFanfare");} //iron sword
 					if (this.type==16) {ply.flippers=true; playSound("ItemFanfare");} //flippers
+					if (this.type==17) { //bombs
+					    if(ply.hasbombs){
+								ply.bombs+=2; playSound("Item");
+							}else {
+								ply.hasbombs=true; ply.bombs=10;  playSound("ItemFanfare");
+							} 
+							
+						} 
+					if (this.type==18) {ply.hammer=true; playSound("ItemFanfare");} //hammer
+					if (this.type==19) {ply.book=true; playSound("ItemFanfare");} //book
+					if (this.type==20) {ply.dashboots=true; playSound("ItemFanfare");} //boots
 					}
+
 				this.x += this.xVelocity;
                 this.y += this.yVelocity;
 			};
@@ -546,7 +591,7 @@
         
           explode: function() {
             playSound("Enemy_Kill");
-        
+            
             this.active = false;
             // TODO: Add an explosion graphic
           }
@@ -554,13 +599,37 @@
 		  };
 				  
 		var woodsword= { //the first sword
-		  len: 17,
+		  len: 12,
 		  width: 4,
-		  speed: 6,
+		  speed: 3,
 		  track: 0,
 		  color: "#663300",
 		  count: 0,
 		  dmg: 10,
+		  active: false,
+		  going: true
+		  };
+		  
+		  var stonesword= { //the first sword
+		  len: 17,
+		  width: 4,
+		  speed: 6,
+		  track: 0,
+		  color: "#999966",
+		  count: 0,
+		  dmg: 15,
+		  active: false,
+		  going: true
+		  };
+		  
+		  var ironsword= { //the first sword
+		  len: 20,
+		  width: 6,
+		  speed: 9,
+		  track: 0,
+		  color: "#CCFFFF",
+		  count: 0,
+		  dmg: 20,
 		  active: false,
 		  going: true
 		  };
@@ -587,6 +656,11 @@
 		  mp:20,
 		  maxmp:20,
 		  type: 0,
+		  hasbombs: false,
+		  hammer: false,
+		  book: false,
+		  boots: false,
+		  bombs:0,
 		  flippers: false,  
           width: 32,
           height: 32,
@@ -639,12 +713,14 @@
 				canvas.textAlign = "left";
 				canvas.textBaseline = "middle";
 				canvas.fillStyle = "white";
-				canvas.fillText("MP:", 76, 48);
-				canvas.fillText(timee, 76, 68);
-				canvas.fillText(numsounds, 76, 78);
-					
+				canvas.fillText("MP:", 68, 48);
+				canvas.fillText("Bombs:", 43, 64);
+				canvas.fillText(this.bombs, 105, 64);
+				
+				canvas.fillText(milliseconds/1000, 105, 120);	
+				
 				canvas.fillStyle = "#5F9EA0";
-				canvas.fillRect(100, 45, this.mp, 16);
+				canvas.fillRect(100, 40, this.mp, 16);
 				
 				//todo:MOVE THIS
 				if(this.key[0]){
@@ -820,17 +896,21 @@
 
           },
 		  
-		  move: function (px,py) {
+		  move: function (px,py,merp) {
+				if (merp.tiles[this.x][this.y].data==3) {playSound("Swim");}
+				if (merp.tiles[this.x][this.y].data==1) {playSound("GrassWalk");}
 				this.x+=px;
 				this.y+=py
+				
 			},
 			
 		  
 		  getKeys: function(merp,cam) {
 		      
 		      if(defkey.check()){
-				if (!this.sword.active){
+				if ((!this.sword.active) && (this.sword!=nosword)){
 					this.sword.active=true;
+					playSound("Sword4");
 				}
 			  }
 		  
@@ -838,22 +918,22 @@
 				cam.center(this);
 			    this.dir=3;
 				this.animate();
-			    if ((this.x>0) && (this.y<MAP_HEIGHT-1) && (merp.canWalk(this,[this.x-1],[this.y])) && (merp.canWalk(this,[this.x-1],[this.y+1]))) {this.move(-1,0);}
+			    if ((this.x>0) && (this.y<MAP_HEIGHT-1) && (merp.canWalk(this,[this.x-1],[this.y])) && (merp.canWalk(this,[this.x-1],[this.y+1]))) {this.move(-1,0,merp);}
 			  }else if(keydown.d) {
 			    cam.center(this);
 			    this.dir=1;
 				this.animate();
-				if ((this.y<MAP_HEIGHT-1) && (this.x<MAP_WIDTH-2) &&(merp.canWalk(this,[this.x+2],[this.y])) && (merp.canWalk(this,[this.x+2],[this.y+1]))) {this.move(1,0);}
+				if ((this.y<MAP_HEIGHT-1) && (this.x<MAP_WIDTH-2) &&(merp.canWalk(this,[this.x+2],[this.y])) && (merp.canWalk(this,[this.x+2],[this.y+1]))) {this.move(1,0,merp);}
 			  }else if(keydown.w) {
 			    cam.center(this);
 			    this.dir=0;
 				this.animate();
-				if ((this.y>0) && (this.x<MAP_WIDTH-1) && (merp.canWalk(this,[this.x],[this.y-1])) && (merp.canWalk(this,[this.x+1],[this.y-1]))) {this.move(0,-1);}
+				if ((this.y>0) && (this.x<MAP_WIDTH-1) && (merp.canWalk(this,[this.x],[this.y-1])) && (merp.canWalk(this,[this.x+1],[this.y-1]))) {this.move(0,-1,merp);}
 			  }else if(keydown.s) {
 			    cam.center(this);
 			    this.dir=2;
 				this.animate(); 
-				if ((this.y<MAP_HEIGHT-2) && (this.x<MAP_WIDTH-1) && (merp.canWalk(this,[this.x],[this.y+2])) && (merp.canWalk(this,[this.x+1],[this.y+2]))) {this.move(0,1);}
+				if ((this.y<MAP_HEIGHT-2) && (this.x<MAP_WIDTH-1) && (merp.canWalk(this,[this.x],[this.y+2])) && (merp.canWalk(this,[this.x+1],[this.y+2]))) {this.move(0,1,merp);}
 			  }
 			  this.x = this.x.clamp(0, MAP_WIDTH-1);
 			  this.y = this.y.clamp(0, MAP_HEIGHT-1);
@@ -1050,8 +1130,12 @@
 			  if ((I.tiles[x][y].data ==18)  || (I.tiles[x][y].data ==19) || (I.tiles[x][y].data ==20) )
 			  {
 				if (ply.key[I.tiles[x][y].data-18]) {
+					playSound("unlock");
 					return true;
-					}else {return false;}
+					}else {
+					playSound("locked");
+					return false;
+					}
 					
 				 }else if ((I.tiles[x][y].data ==2)  || ((I.tiles[x][y].data ==3 ) && (!ply.flippers)) || (I.tiles[x][y].data ==5) || (I.tiles[x][y].data ==7)|| (I.tiles[x][y].data ==8)) {
 					return false;
@@ -1116,8 +1200,15 @@
 		stuff.push(new thing(7,79,56)); //red key
 		stuff.push(new thing(9,37,32)); //green key
 		stuff.push(new thing(8,80,16)); //blue key
-		stuff.push(new thing(15,11,16)); //wooden sword
+		stuff.push(new thing(13,11,16)); //wooden sword
+		stuff.push(new thing(14,9,16)); //stone sword
+		stuff.push(new thing(15,13,16)); //iron sword
 		stuff.push(new thing(16,52,24)); //flippers
+		stuff.push(new thing(17,11,26)); //bomb
+		
+		stuff.push(new thing(18,23,30)); //hammer
+		stuff.push(new thing(19,32,30)); //book
+		stuff.push(new thing(20,41,26)); //boots
 		
 		
         function Bullet(I) {  //player fired projectile
@@ -1269,17 +1360,20 @@
 
 		
 		
-	/*document.getElementById("myAudio").addEventListener('ended', function() { //loops music
+		document.getElementById("myAudio").addEventListener('ended', function() { //loops music
 		this.currentTime = 0;
 		this.play();
 		}, false);
 		
-		document.getElementById("myAudio").play(); //starts music*/
+		document.getElementById("myAudio").play(); //starts music
 
 		player.init();
 		
 	//------------MAIN LOOP-----------------------------------------
         function update() {
+			lasttime=milliseconds;
+			timestamp = new Date();
+			milliseconds = timestamp.getTime();
 			
 		    anicount++;
 			if (anicount>anirate) {
