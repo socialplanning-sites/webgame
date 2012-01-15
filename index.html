@@ -1,73 +1,73 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
   <head>
-    <title>Yaaaar</title>
+    <title>It's an homage!!</title>
     <link href="/stylesheets/screen.css" media="all" rel="stylesheet" type="text/css"/>
     <script language="javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type="text/javascript"></script><script language="javascript" src="javascripts/jquery.hotkeys.js" type="text/javascript"></script><script language="javascript" src="javascripts/key_status.js" type="text/javascript"></script><script language="javascript" src="javascripts/util.js" type="text/javascript"></script><script language="javascript" src="javascripts/sprite.js" type="text/javascript"></script><script language="javascript" src="javascripts/sound.js" type="text/javascript"></script>
   </head>
   <body>
-	<audio id="myAudio">
+	<audio id="myAudio" preload="auto">
     <source src="song.mp3" type="audio/mpeg" />
+	Your browser does not support the audio element.
    	</audio>
 		
-	<audio id="shoot">
+	<audio id="shoot" preload="auto">
     <source src="sounds/shoot.wav" type="audio/wav" />
        </audio>
 	
-	<audio id="coin">
+	<audio id="coin" preload="auto"">
     <source src="sounds/coin.wav" type="audio/wav" />
     </audio>
 	
-	<audio id="playerhurt">
+	<audio id="playerhurt" preload="auto">
     <source src="sounds/playerhurt.wav" type="audio/wav" />
     </audio>
 	
-	<audio id="Enemy_Hit">
+	<audio id="Enemy_Hit" preload="auto">
     <source src="sounds/Enemy_Hit.wav" type="audio/wav" />
     </audio>
 	
-	<audio id="Enemy_Kill">
+	<audio id="Enemy_Kill" preload="auto">
     <source src="sounds/Enemy_Kill.wav" type="audio/wav" />
     </audio>
 	
-	<audio id="Item">
+	<audio id="Item" preload="auto">
     <source src="sounds/Item.wav" type="audio/wav" />
-    Your browser does not support the audio element.
     </audio>
 	
-    <audio id="ItemFanfare">
+    <audio id="ItemFanfare" preload="auto">
     <source src="sounds/ItemFanfare.wav" type="audio/wav" />
     </audio>
 	
-	<audio id="Key">
+	<audio id="Key" preload="auto">
     <source src="sounds/Key.wav" type="audio/wav" />
       </audio>
 	
-    <audio id="HeartContainer">
+    <audio id="HeartContainer" preload="auto">
     <source src="sounds/HeartContainer.wav" type="audio/wav" />
     </audio>
 	
-	<audio id="dying">
+	<audio id="dying" preload="auto">
     <source src="sounds/dying.wav" type="audio/wav" />
     </audio>
 	
-	<audio id="Sword4">
+	<audio id="Sword4" preload="auto">
     <source src="sounds/Sword4.wav" type="audio/wav" />
     </audio>
 	
-	<audio id="Swim">
+	<audio id="Swim" preload="auto">
     <source src="sounds/Swim.wav" type="audio/wav" />
     </audio>
 	
-	<audio id="GrassWalk">
+	<audio id="GrassWalk" preload="auto">
     <source src="sounds/GrassWalk.wav" type="audio/wav" />
     </audio>
 	
-	<audio id="unlock">
+	<audio id="unlock" preload="auto" >
     <source src="sounds/unlock.wav" type="audio/wav" />
     </audio>
 	
-	<audio id="locked">
+	<audio id="locked" preload="auto">
     <source src="sounds/locked.wav" type="audio/wav" />
     </audio>
 	
@@ -75,6 +75,8 @@
 
     <script type='text/javascript'>
       //<![CDATA[
+		var textPause=false;
+		var textText="";
         var CANVAS_WIDTH = 900;
         var CANVAS_HEIGHT = 640;
 		var MAP_WIDTH = 120;
@@ -117,6 +119,7 @@
 		var bluekeysprite= Sprite("bluekey");
 		var goldsprite =Sprite("gold");
 		Mode = 0;
+		TopView=true;
 		var playerBullets = [];
 
 		var NUM_TILES=20; //numer of tile types
@@ -390,6 +393,9 @@
 			}else if (this.type==20) {
 				this.sprite= Sprite("boots");
 				this.name="Boots";
+			}else if (this.type==21) {
+				this.sprite= Sprite("rumham");
+				this.name="RUM HAM";
 			}
 			
 			this.collectable= true;
@@ -410,30 +416,84 @@
 				if(this.colision(ply)) { //TODO: hold over head ala zelda?
 					this.active=false;
 					if (this.type==0) {ply.heal(10); playSound("Item");}  //mushroom heals
-					if (this.type==1) {ply.maxhp+=20; ply.hp=ply.maxhp; playSound("HeartContainer");}  //heart container //sound!
-					if (this.type==2) {ply.pay(25);playSound("coin");} //gold
-					if (this.type==3) {ply.pay(10);playSound("coin");}  //silver
-					if (this.type==4) {ply.pay(1); playSound("coin");} //copper
-					if (this.type==5) {ply.MP(15); playSound("Item");} //mana potion
-					if (this.type==6) {ply.maxmp+=20; ply.mp=ply.maxmp; playSound("ItemFanfare");} //mana increase
+					if (this.type==1) {
+						ply.maxhp+=20; ply.hp=ply.maxhp; playSound("HeartContainer");
+						textPause=true;
+						ply.grabedsprite=this.sprite;
+						textText="You found a Heart Container!  Your max health is increased by 20";
+					}  //heart container //sound!
+					if (this.type==2) {ply.pay(25); playSound("coin");} //gold
+					if (this.type==3) {ply.pay(10); playSound("coin");}  //silver
+					if (this.type==4) {ply.pay(1);  playSound("coin");} //copper
+					if (this.type==5) {ply.MP(15);  playSound("Item");} //mana potion
+					if (this.type==6) {
+						ply.maxmp+=20; ply.mp=ply.maxmp; playSound("ItemFanfare");
+						textPause=true;
+						ply.grabedsprite=this.sprite;
+						textText="You found a Mana Container!  Your max MP is increased by....some amount";
+					} //mana increase
 					if (this.type==7) {ply.key[0]=true;playSound("Key"); }  //redkey
 					if (this.type==8) {ply.key[1]=true; playSound("Key");} //blue key
 					if (this.type==9) {ply.key[2]=true; playSound("Key");} //green key
-					if (this.type==13) {ply.sword=woodsword; playSound("ItemFanfare");} //sword
-					if (this.type==14) {ply.sword=stonesword; playSound("ItemFanfare");} //stone sword
-					if (this.type==15) {ply.sword=ironsword; playSound("ItemFanfare");} //iron sword
-					if (this.type==16) {ply.flippers=true; playSound("ItemFanfare");} //flippers
+					if (this.type==13) {
+						ply.sword=woodsword; playSound("ItemFanfare");
+						textPause=true;
+						ply.grabedsprite=this.sprite;
+						textText="You got the Wooden Sword!  It sorta blows.";
+					} //sword
+					if (this.type==14) {
+						ply.sword=stonesword; playSound("ItemFanfare");
+						textPause=true;
+						ply.grabedsprite=this.sprite;
+						textText="You got the Stone Sword.  It's an improvment!";
+					} //stone sword
+					if (this.type==15) {
+						ply.sword=ironsword; playSound("ItemFanfare");
+						textPause=true;
+						ply.grabedsprite=this.sprite;
+						textText="You found the Iron Sword!  Best. Sword. Ever.";
+					} //iron sword
+					if (this.type==16) {
+						ply.flippers=true; playSound("ItemFanfare");
+						textPause=true;
+						ply.grabedsprite=this.sprite;
+						textText="You found the Flippers! Now you can travel through water!";
+					} //flippers
 					if (this.type==17) { //bombs
 					    if(ply.hasbombs){
 								ply.bombs+=2; playSound("Item");
 							}else {
 								ply.hasbombs=true; ply.bombs=10;  playSound("ItemFanfare");
+								textPause=true;
+								ply.grabedsprite=this.sprite;
+								textText="You found the Bombs!  But then I suppose I didn't hide them very well...";
 							} 
 							
 						} 
-					if (this.type==18) {ply.hammer=true; playSound("ItemFanfare");} //hammer
-					if (this.type==19) {ply.book=true; playSound("ItemFanfare");} //book
-					if (this.type==20) {ply.dashboots=true; playSound("ItemFanfare");} //boots
+					if (this.type==18) {
+						ply.hammer=true; playSound("ItemFanfare");
+						textPause=true;
+						ply.grabedsprite=this.sprite;
+						textText="You found the Hammer!  Too bad  I haven't coded it yet.";
+					} //hammer
+					if (this.type==19) {
+						ply.book=true; playSound("ItemFanfare");
+						textPause=true;
+						ply.grabedsprite=this.sprite;
+						textText="You found the Book!  It's totally pointless!";
+					} //book
+					if (this.type==20) {
+						ply.dashboots=true; playSound("ItemFanfare");
+					    textPause=true;
+						ply.grabedsprite=this.sprite;
+						textText="You found the Dash Boots! Fuck off!";
+					} //boots
+					if (this.type==21) {
+						ply.rumham=true; playSound("ItemFanfare");
+					    textPause=true;
+						ply.grabedsprite=this.sprite;
+						textText="You found the Rum Ham!  Looks like you'll be getting HAMmered tonight!";
+					} //boots
 					}
 
 				this.x += this.xVelocity;
@@ -670,6 +730,8 @@
 		  kills: 0,
 		  gothurt: 0,
 		  key: Array(10),
+		  grabsprite: 0,
+		  grabedsprite: 0,
 		  sword: 0,
 		  init: function () {  //load sprites
 		    this.sword=nosword;
@@ -678,6 +740,7 @@
 			this.sprites[1] = new Array(2);
 			this.sprites[2] = new Array(2);
 			this.sprites[3] = new Array(2);
+			this.grabsprite= Sprite("beargrab");
 			this.sprites[0][0]= Sprite("bearback1");
 			this.sprites[0][1]= Sprite("bearback2");
 			
@@ -778,8 +841,8 @@
 			//Sound.play("healing");
           },
 		  
-		  pay: function(dmg) {
-		    this.cash+=dmg;
+		  pay: function(amt) {
+		    this.cash+=amt;
 			if (this.cash>this.maxcash) {this.cash=this.maxcash;}
 			//graphic?
 			//Sound.play("coin");
@@ -897,8 +960,10 @@
           },
 		  
 		  move: function (px,py,merp) {
-				if (merp.tiles[this.x][this.y].data==3) {playSound("Swim");}
-				if (merp.tiles[this.x][this.y].data==1) {playSound("GrassWalk");}
+				this.tiletype=merp.tiles[this.x][this.y].data;
+				if (this.tiletype==3) {playSound("Swim");}
+				if (this.tiletype==1) {playSound("GrassWalk");}
+				if (this.tiletype==20) {this.hurt(3);} //poison ground
 				this.x+=px;
 				this.y+=py
 				
@@ -1208,7 +1273,7 @@
 		
 		stuff.push(new thing(18,23,30)); //hammer
 		stuff.push(new thing(19,32,30)); //book
-		stuff.push(new thing(20,41,26)); //boots
+		stuff.push(new thing(21,41,26)); //boots
 		
 		
         function Bullet(I) {  //player fired projectile
@@ -1381,7 +1446,10 @@
 				anicount=0;
 			}
 			if (tileani>4) {tileani=0} //tile animations
-			
+			if(textPause) {
+				if(keydown.space) {textPause=false;}
+			return
+			};
 		    if(modekey.check()) {
 				if (Mode==0) {
 					Mode=1;
@@ -1592,6 +1660,7 @@
 		 player.drawHearts();
 		 player.drawmp();
 
+
 		  maps.forEach(function(imap) {
 			imap.drawRadar(camera, 645, 466,player.x,player.y);
          });
@@ -1639,7 +1708,12 @@
         
         
         player.draw = function(cam) {
-
+			if (textPause) {
+				this.grabsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+				this.grabedsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16-24);
+				textbox(textText);
+				return;
+				}
 		  	if (this.gothurt>0) {
 				this.gothurt--;
 				canvas.save();
