@@ -71,18 +71,22 @@
 		var gotall=false;
 		var numsounds=0;
 		var soundsplaying ="";
+		var lastsoundtime=0;
 
 	
 		function playSound(name){
-			if(numsounds<4){
+			 var timestamp = new Date(); 
+			 var milliseconds = timestamp.getTime();
+		
+		     time=milliseconds/1000;
+			if(time-lastsoundtime>3){
 				
-
 				Sound.play(name);
 				numsounds++;
 				soundsplaying+=name;
+				lastsoundtime=time;
 
-
-			}else {Sound.stop(); numsounds=0; soundsplaying =""}
+			}
 			
 			/*			if(numsounds<4){
 				if((soundsplaying.indexOf(name)==-1)){
