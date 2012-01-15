@@ -7,9 +7,59 @@
   </head>
   <body>
 	<audio id="myAudio">
-    <source src="songu.mp3" type="audio/mpeg" />
+    <source src="song.mp3" type="audio/mpeg" />
+   	</audio>
+		
+	<audio id="shoot">
+    <source src="sounds/shoot.wav" type="audio/wav" />
     Your browser does not support the audio element.
     </audio>
+	
+	<audio id="coin">
+    <source src="sounds/coin.wav" type="audio/wav" />
+    Your browser does not support the audio element.
+    </audio>
+	
+	<audio id="playerhurt">
+    <source src="sounds/playerhurt.wav" type="audio/wav" />
+    Your browser does not support the audio element.
+    </audio>
+	
+	<audio id="Enemy_Hit">
+    <source src="sounds/Enemy_Hit.wav" type="audio/wav" />
+    Your browser does not support the audio element.
+    </audio>
+	
+	<audio id="Enemy_Kill">
+    <source src="sounds/Enemy_Kill.wav" type="audio/wav" />
+    Your browser does not support the audio element.
+    </audio>
+	
+	<audio id="Item">
+    <source src="sounds/Item.wav" type="audio/wav" />
+    Your browser does not support the audio element.
+    </audio>
+	
+    <audio id="ItemFanfare">
+    <source src="sounds/ItemFanfare.wav" type="audio/wav" />
+    Your browser does not support the audio element.
+    </audio>
+	
+	<audio id="Key">
+    <source src="sounds/Key.wav" type="audio/wav" />
+    Your browser does not support the audio element.
+    </audio>
+	
+    <audio id="HeartContainer">
+    <source src="sounds/HeartContainer.wav" type="audio/wav" />
+    Your browser does not support the audio element.
+    </audio>
+	
+	<audio id="dying">
+    <source src="sounds/dying.wav" type="audio/wav" />
+    Your browser does not support the audio element.
+    </audio>
+	
     <h1>Hit H for controls. </h1>
 
     <script type='text/javascript'>
@@ -72,31 +122,17 @@
 		var numsounds=0;
 		var soundsplaying ="";
 		var lastsoundtime=0;
-
+        var timee=0;
 	
+
 		function playSound(name){
-			 var timestamp = new Date(); 
-			 var milliseconds = timestamp.getTime();
-		
-		     time=milliseconds/1000;
-			if(time-lastsoundtime>3){
-				
-				Sound.play(name);
-				numsounds++;
-				soundsplaying+=name;
-				lastsoundtime=time;
 
-			}
-			
-			/*			if(numsounds<4){
-				if((soundsplaying.indexOf(name)==-1)){
+				nerp=document.getElementById("shoot"); //name);
+				if(nerp.ended == true || nerp.currentTime == 0){
+					nerp.play()
+					numsounds++;
+				}
 
-				Sound.play(name);
-				numsounds++;
-				soundsplaying+=name;
-				}else {Sound.stop(); soundsplaying.replace(name,"");}
-
-			}else {Sound.stop(); numsounds=0; soundsplaying =""}*/
 		};
 	
 			
@@ -228,6 +264,7 @@
 		document.body.addEventListener("mouseup", Mouse.mouseUp, false);
 		document.body.addEventListener("touchcancel", Mouse.touchUp, false);
 		
+	
 		var savekey=new akey("o"); //define the different keys
 		var loadkey=new akey("l");
 		var upkey=new akey("w");
@@ -599,11 +636,11 @@
 		    drawmp: function(){  //really draws most of the H.U.D.
 			
 				canvas.font = "14pt Calibri";
-				canvas.textAlign = "center";
+				canvas.textAlign = "left";
 				canvas.textBaseline = "middle";
 				canvas.fillStyle = "white";
 				canvas.fillText("MP:", 76, 48);
-				canvas.fillText(soundsplaying, 76, 68);
+				canvas.fillText(timee, 76, 68);
 				canvas.fillText(numsounds, 76, 78);
 					
 				canvas.fillStyle = "#5F9EA0";
@@ -773,6 +810,7 @@
 			this.y=20
 			this.hp=100;
 			this.gothurt=725;
+			playSound("dying");
 
           },
 		  
@@ -1231,13 +1269,13 @@
 
 		
 		
-	document.getElementById("myAudio").addEventListener('ended', function() { //loops music
+	/*document.getElementById("myAudio").addEventListener('ended', function() { //loops music
 		this.currentTime = 0;
 		this.play();
 		}, false);
 		
-		document.getElementById("myAudio").play(); //starts music
-	
+		document.getElementById("myAudio").play(); //starts music*/
+
 		player.init();
 		
 	//------------MAIN LOOP-----------------------------------------
@@ -1497,6 +1535,11 @@
 		  	if(Smedly.active){
 				Smedly.update();
 			if(player.checkCollide(Smedly)) {player.hurt(10);}
+			
+			  playerBullets.forEach(function(bullet) {
+				if (bullet.checkHit(Smedly)) {Smedly.hurt(5);}
+			});
+			
 			}
         }
         
