@@ -127,7 +127,7 @@
 
 		function playSound(name){
 
-				nerp=document.getElementById("shoot"); //name);
+				nerp=document.getElementById(name);
 				if(nerp.ended == true || nerp.currentTime == 0){
 					nerp.play()
 					numsounds++;
