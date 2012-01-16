@@ -127,6 +127,7 @@
 		var bluekeysprite= Sprite("bluekey");
 		var goldsprite =Sprite("gold");
 		var bombsprite =Sprite("bomb");
+		var redbombsprite =Sprite("redbomb");
 		var shieldsprite =Sprite("bubble");
 
 		Mode = 0;
@@ -200,9 +201,17 @@
 				playSound("explosion");
 				I.armed=false;
 				I.active=false;
+			
 			};
 			I.draw =function(cam) {
-				bombsprite.draw(canvas, (I.x-cam.x)*16, (I.y-cam.y)*16);
+				if((milliseconds-I.timeplaced>I.fuse*800) && (I.armed)){
+					if(milliseconds%2==0){
+						redbombsprite.draw(canvas, (I.x-cam.x)*16, (I.y-cam.y)*16);
+					}else{
+						bombsprite.draw(canvas, (I.x-cam.x)*16, (I.y-cam.y)*16);
+					}
+				}else
+					bombsprite.draw(canvas, (I.x-cam.x)*16, (I.y-cam.y)*16);
 			};
 			
 			I.update= function(){
