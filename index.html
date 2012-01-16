@@ -118,9 +118,12 @@
 		var greenkeysprite= Sprite("greenkey");
 		var bluekeysprite= Sprite("bluekey");
 		var goldsprite =Sprite("gold");
+		var bombsprite =Sprite("bomb");
+
 		Mode = 0;
 		TopView=true;
 		var playerBullets = [];
+		var playerBombs = [];
 
 		var NUM_TILES=20; //numer of tile types
 
@@ -166,6 +169,39 @@
 				}
 		    };
 			return this;
+		}
+		
+		function aBomb(I) {  //represents a keyboard button
+		   	I.x=0;
+			I.y=0;
+			I.timeplaced=0;
+			I.timenow=0;
+			I.fuse=4;
+			I.active=false;
+			I.armed=false;
+			I.arm= function(x,y){
+						date = new Date();
+						I.timeplaced = date.getTime();
+						I.armed=true;
+			};
+			I.explode =function() {
+				alert ("BOOM");
+				I.armed=false;
+				I.active=false;
+			};
+			I.draw =function(cam) {
+				bombsprite.draw(canvas, (I.x)*16, (I.y)*16);
+			};
+			
+			I.update= function(){
+				date = new Date();
+				I.timenow = date.getTime();
+				if((I.timenow-I.timeplaced>I.fuse*1000) && (I.armed)){
+					I.active=false;
+					I.explode();
+				}
+		    };
+			return I;
 		}
 		
 		function textbox(msg) {  //draws a text box
@@ -310,8 +346,8 @@
 				ty=targ.y-20;
 				if (tx<0) {tx=0;}
 				if (ty<0) {ty=0;}
-				if (tx>MAP_WIDTH-60) {tx=MAP_WIDTH-60;}
-				if (ty>MAP_HEIGHT-40) {ty=MAP_HEIGHT-40;}
+				if (tx>MAP_WIDTH-this.width) {tx=MAP_WIDTH-this.width;}
+				if (ty>MAP_HEIGHT-this.height) {ty=MAP_HEIGHT-this.height;}
 
 				this.x=tx;
 				this.y=ty;
@@ -392,7 +428,7 @@
 				this.name="Book";
 			}else if (this.type==20) {
 				this.sprite= Sprite("boots");
-				this.name="Boots";
+				this.name="Speed Boots";
 			}else if (this.type==21) {
 				this.sprite= Sprite("rumham");
 				this.name="RUM HAM";
@@ -484,9 +520,10 @@
 					} //book
 					if (this.type==20) {
 						ply.dashboots=true; playSound("ItemFanfare");
+						ply.speed=20;
 					    textPause=true;
 						ply.grabedsprite=this.sprite;
-						textText="You found the Dash Boots! Fuck off!";
+						textText="You found the Speed Boots! Now you move faster!";
 					} //boots
 					if (this.type==21) {
 						ply.rumham=true; playSound("ItemFanfare");
@@ -733,6 +770,8 @@
 		  grabsprite: 0,
 		  grabedsprite: 0,
 		  sword: 0,
+		  timelastmoved: 0,
+		  speed: 70,
 		  init: function () {  //load sprites
 		    this.sword=nosword;
 			this.sprites=new Array(4); //4 directions
@@ -781,6 +820,8 @@
 				canvas.fillText(this.bombs, 105, 64);
 				
 				canvas.fillText(milliseconds/1000, 105, 120);	
+				canvas.fillText(player.timelastmoved/1000, 105, 140);
+				
 				
 				canvas.fillStyle = "#5F9EA0";
 				canvas.fillRect(100, 40, this.mp, 16);
@@ -961,11 +1002,15 @@
 		  
 		  move: function (px,py,merp) {
 				this.tiletype=merp.tiles[this.x][this.y].data;
+				if(milliseconds-this.timelastmoved<this.speed){ return; }
 				if (this.tiletype==3) {playSound("Swim");}
 				if (this.tiletype==1) {playSound("GrassWalk");}
 				if (this.tiletype==20) {this.hurt(3);} //poison ground
 				this.x+=px;
 				this.y+=py
+				this.timelastmoved=milliseconds;
+				//camear.center(this);
+				this.animate();
 				
 			},
 			
@@ -980,24 +1025,16 @@
 			  }
 		  
 			  if(keydown.a) {
-				cam.center(this);
 			    this.dir=3;
-				this.animate();
 			    if ((this.x>0) && (this.y<MAP_HEIGHT-1) && (merp.canWalk(this,[this.x-1],[this.y])) && (merp.canWalk(this,[this.x-1],[this.y+1]))) {this.move(-1,0,merp);}
 			  }else if(keydown.d) {
-			    cam.center(this);
 			    this.dir=1;
-				this.animate();
 				if ((this.y<MAP_HEIGHT-1) && (this.x<MAP_WIDTH-2) &&(merp.canWalk(this,[this.x+2],[this.y])) && (merp.canWalk(this,[this.x+2],[this.y+1]))) {this.move(1,0,merp);}
 			  }else if(keydown.w) {
-			    cam.center(this);
 			    this.dir=0;
-				this.animate();
 				if ((this.y>0) && (this.x<MAP_WIDTH-1) && (merp.canWalk(this,[this.x],[this.y-1])) && (merp.canWalk(this,[this.x+1],[this.y-1]))) {this.move(0,-1,merp);}
 			  }else if(keydown.s) {
-			    cam.center(this);
 			    this.dir=2;
-				this.animate(); 
 				if ((this.y<MAP_HEIGHT-2) && (this.x<MAP_WIDTH-1) && (merp.canWalk(this,[this.x],[this.y+2])) && (merp.canWalk(this,[this.x+1],[this.y+2]))) {this.move(0,1,merp);}
 			  }
 			  this.x = this.x.clamp(0, MAP_WIDTH-1);
@@ -1273,7 +1310,7 @@
 		
 		stuff.push(new thing(18,23,30)); //hammer
 		stuff.push(new thing(19,32,30)); //book
-		stuff.push(new thing(21,41,26)); //boots
+		stuff.push(new thing(20,41,26)); //boots
 		
 		
         function Bullet(I) {  //player fired projectile
@@ -1530,7 +1567,8 @@
 			player.getKeys(maps[0],camera);
 			player.update();
 		    if(keydown.space) { 
-				player.shoot();
+				//player.shoot();
+				player.placeBomb();
 			}
 
 			  if(helpkey.check()){
@@ -1540,6 +1578,10 @@
         ////process things
 			playerBullets.forEach(function(bullet) {  
 				bullet.update(maps[0]);
+			});
+			
+			playerBombs.forEach(function(aBomb) {  
+				aBomb.update();
 			});
 			  
 			if (Smedly.active) {
@@ -1565,6 +1607,10 @@
 		  
           playerBullets = playerBullets.filter(function(bullet) {
             return bullet.active;
+          });
+		  
+		  playerBombs = playerBombs.filter(function(aBomb) {
+            return aBomb.active;
           });
           
           enemies.forEach(function(enemy) {
@@ -1602,6 +1648,24 @@
             y: bulletPosition.y
           }));
         };
+		
+		player.placeBomb = function() {
+          if (this.bombs<1) {return;}
+		  this.bombs--;
+		  //playSound("placebomb");
+        		
+			ddate = new Date();
+			ttimeplaced = date.getTime();
+       
+          playerBombs.push(aBomb({ 
+            fuse: 4,
+            x: this.x,
+            y: this.y,
+			timeplaced: ttimeplaced,
+			armed: true
+          }));
+
+        };
         
         
         function draw() { //Main render function
@@ -1617,6 +1681,10 @@
           
           playerBullets.forEach(function(bullet) {
             bullet.draw(camera);
+          });
+		  
+		  playerBombs.forEach(function(aBomb) {
+            aBomb.draw(camera);
           });
 		  
 		  stuff.forEach(function(thing) {
@@ -1705,6 +1773,20 @@
 			
 			}
         }
+		
+		  player.move=function (px,py,merp) {
+				this.tiletype=merp.tiles[this.x][this.y].data;
+				if(milliseconds-this.timelastmoved<this.speed){ return; }
+				if (this.tiletype==3) {playSound("Swim");}
+				if (this.tiletype==1) {playSound("GrassWalk");}
+				if (this.tiletype==20) {this.hurt(3);} //poison ground
+				this.x+=px;
+				this.y+=py
+				this.timelastmoved=milliseconds;
+				camera.center(this);
+				this.animate();
+				
+			};
         
         
         player.draw = function(cam) {
