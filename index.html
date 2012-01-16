@@ -11,6 +11,11 @@
 	Your browser does not support the audio element.
    	</audio>
 		
+		
+		<audio id="explosion" preload="auto">
+    <source src="sounds/explosion.wav" type="audio/wav" />
+       </audio>
+	   
 	<audio id="shoot" preload="auto">
     <source src="sounds/shoot.wav" type="audio/wav" />
        </audio>
@@ -122,6 +127,7 @@
 		var bluekeysprite= Sprite("bluekey");
 		var goldsprite =Sprite("gold");
 		var bombsprite =Sprite("bomb");
+		var shieldsprite =Sprite("bubble");
 
 		Mode = 0;
 		TopView=true;
@@ -191,6 +197,7 @@
 				//check radius for enemies, player, hurt
 				//check radius for brick/darkwood, replace with grass/crater
 				//particle explosion
+				playSound("explosion");
 				I.armed=false;
 				I.active=false;
 			};
@@ -337,6 +344,8 @@
 		var slowkey=new akey("b");
 		var cmousekey=new akey("v");
 	    var defkey=new akey("q");
+		var magickey=new akey("e");
+		var usekey=new akey("space");		
 		
 		var stuff=[];
 		
@@ -519,6 +528,7 @@
 					if (this.type==19) {
 						ply.book=true; playSound("ItemFanfare");
 						textPause=true;
+						ply.spells[0]=true;
 						ply.grabedsprite=this.sprite;
 						textText="You found the Book!  It's totally pointless!";
 					} //book
@@ -753,8 +763,10 @@
           y: 20,
 		  dir: 2,
 		  maxhp:100,
+		  spells: 0,
 		  hp:50,
 		  mp:20,
+		  curspell: 0,
 		  maxmp:20,
 		  type: 0,
 		  hasbombs: false,
@@ -779,6 +791,13 @@
 		  speed: 70,
 		  init: function () {  //load sprites
 		    this.sword=nosword;
+			this.spells=new Array(8);
+			this.spells[0]=false;  //fireball
+			this.spells[1]=false;  //magic sheild
+			this.spells[2]=false;  //jump
+			this.spells[3]=false;  //encircle
+			this.spells[4]=false;  //heal
+			this.spells[5]=false;  //push
 			this.sprites=new Array(4); //4 directions
 			this.sprites[0] = new Array(2);  //2 frames
 			this.sprites[1] = new Array(2);
@@ -1010,7 +1029,7 @@
 
           },
 		  
-		  move: function (px,py,merp) {
+		  move: function (px,py,merp) {///placeholder
 				this.tiletype=merp.tiles[this.x][this.y].data;
 				if(milliseconds-this.timelastmoved<this.speed){ return; }
 				if (this.tiletype==3) {playSound("Swim");}
@@ -1031,6 +1050,18 @@
 				if ((!this.sword.active) && (this.sword!=nosword)){
 					this.sword.active=true;
 					playSound("Sword4");
+				}
+			  }
+			  
+			  if(magickey.check()){
+					if(this.spells[this.curspell]){
+						this.shoot();
+					}
+			  }
+			  
+			  if(usekey.check()){
+			  	if(this.hasbombs){
+					this.placeBomb();
 				}
 			  }
 		  
@@ -1495,7 +1526,7 @@
 			}
 			if (tileani>3) {tileani=0} //tile animations
 			if(textPause) {
-				if(keydown.space) {textPause=false;}
+				if(usekey.check()) {textPause=false;}
 			return
 			};
 		    if(modekey.check()) {
@@ -1577,13 +1608,10 @@
 
 			player.getKeys(maps[0],camera);
 			player.update();
-		    if(keydown.space) { 
-				//player.shoot();
-				player.placeBomb();
-			}
+
 
 			  if(helpkey.check()){
-			    alert("WASD = move bear, Arrow keys = move camera, Space = shoot, Q=Sword M= switch to edit mode");
+			    alert("WASD = move bear, Arrow keys = move camera, Space = use item, Q= Sword, E= Magic M= switch to edit mode");
 			 }
 		  }
         ////process things
