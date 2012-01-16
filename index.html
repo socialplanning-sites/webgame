@@ -129,11 +129,18 @@
 		var bombsprite =Sprite("bomb");
 		var redbombsprite =Sprite("redbomb");
 		var shieldsprite =Sprite("bubble");
+		var explosionsprite=new Array(4);
+		explosionsprite[0] =Sprite("explosion0");
+		explosionsprite[1] =Sprite("explosion1");
+		explosionsprite[2] =Sprite("explosion2");
+		explosionsprite[3] =Sprite("explosion3");
+		
 
 		Mode = 0;
 		TopView=true;
 		var playerBullets = [];
 		var playerBombs = [];
+		var explosions = [];
 
 		var NUM_TILES=20; //numer of tile types
 
@@ -182,9 +189,31 @@
 			return this;
 		}
 		
+		function aExplosion(I) {  //represents a keyboard button
+		   	if( ! I.x ) {I.x=0;}
+			if( ! I.y ) {I.y=0;}
+			if( ! I.timedet ) {I.timedet=0;}
+			if( ! I.duration ) {I.duration=5;}
+			if( ! I.active ) {I.active=false;}
+			I.ani=0;
+			I.draw =function(cam) {
+				explosionsprite[I.ani].draw(canvas, (I.x-cam.x)*16, (I.y-cam.y)*16);
+			};
+			I.update =function() {
+				if((milliseconds-I.timedet>I.duration*1000) && (I.active)){
+					I.active=false;
+				}
+				I.ani++;
+				if (I.ani>3) {I.ani=0;}
+			};
+			return I;
+		};
+		
 		function aBomb(I) {  //represents a keyboard button
 		   	if( ! I.x ) {I.x=0;}
 			if( ! I.y ) {I.y=0;}
+		   	if( ! I.width ) {I.width=64;}
+			if( ! I.height ) {I.height=64;}
 			if( ! I.timeplaced ) {I.timeplaced=0;}
 			if( ! I.fuse ) {I.fuse=4;}
 			if( ! I.active ) {I.active=false;}
@@ -198,9 +227,22 @@
 				//check radius for enemies, player, hurt
 				//check radius for brick/darkwood, replace with grass/crater
 				//particle explosion
+					ptimeplaced = milliseconds;
+       
+			  explosions.push(aExplosion({ 
+				duration: 1,
+				x: this.x,
+				y: this.y,
+				width: 64,
+				height: 64,
+				timedet: ptimeplaced,
+				active: true
+			  }));
+			  
 				playSound("explosion");
 				I.armed=false;
 				I.active=false;
+				
 			
 			};
 			I.draw =function(cam) {
@@ -1631,6 +1673,10 @@
 			playerBombs.forEach(function(aBomb) {  
 				aBomb.update();
 			});
+			
+			explosions.forEach(function(aExplosion) {  
+				aExplosion.update();
+			});
 			  
 			if (Smedly.active) {
 				if (player.hitsword(Smedly.x,Smedly.y,Smedly.width,Smedly.height)){ 
@@ -1661,6 +1707,10 @@
             return aBomb.active;
           });
           
+		  explosions = explosions.filter(function(aExplosion) {
+            return aExplosion.active;
+          });
+		  
           enemies.forEach(function(enemy) {
             enemy.update();
           });
@@ -1735,6 +1785,8 @@
             aBomb.draw(camera);
           });
 		  
+
+		  
 		  stuff.forEach(function(thing) {
             thing.draw(camera);
           });
@@ -1749,6 +1801,9 @@
 		  
 		player.draw(camera);
 				 
+		 explosions.forEach(function(aExplosion) {
+            aExplosion.draw(camera);
+          });
 				 
          //cover player in grass or water if neccisary
 		 if(maps[0].tiles[player.x][player.y+1].data==1) {
