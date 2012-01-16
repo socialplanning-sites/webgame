@@ -176,31 +176,31 @@
 		}
 		
 		function aBomb(I) {  //represents a keyboard button
-		   	I.x=0;
-			I.y=0;
-			I.timeplaced=0;
-			I.timenow=0;
-			I.fuse=4;
-			I.active=false;
-			I.armed=false;
+		   	if( ! I.x ) {I.x=0;}
+			if( ! I.y ) {I.y=0;}
+			if( ! I.timeplaced ) {I.timeplaced=0;}
+			if( ! I.fuse ) {I.fuse=4;}
+			if( ! I.active ) {I.active=false;}
+			if( ! I.armed ) {I.armed=false;}
 			I.arm= function(x,y){
-						date = new Date();
-						I.timeplaced = date.getTime();
+						I.timeplaced = milliseconds;
 						I.armed=true;
 			};
 			I.explode =function() {
-				alert ("BOOM");
+				//alert ("BOOM");
+				//check radius for enemies, player, hurt
+				//check radius for brick/darkwood, replace with grass/crater
+				//particle explosion
 				I.armed=false;
 				I.active=false;
 			};
 			I.draw =function(cam) {
-				bombsprite.draw(canvas, (I.x)*16, (I.y)*16);
+				bombsprite.draw(canvas, (I.x-cam.x)*16, (I.y-cam.y)*16);
 			};
 			
 			I.update= function(){
-				date = new Date();
-				I.timenow = date.getTime();
-				if((I.timenow-I.timeplaced>I.fuse*1000) && (I.armed)){
+
+				if((milliseconds-I.timeplaced>I.fuse*1000) && (I.armed)){
 					I.active=false;
 					I.explode();
 				}
@@ -524,7 +524,7 @@
 					} //book
 					if (this.type==20) {
 						ply.dashboots=true; playSound("ItemFanfare");
-						ply.speed=20;
+						ply.speed=37;
 					    textPause=true;
 						ply.grabedsprite=this.sprite;
 						textText="You found the Speed Boots! Now you move faster!";
@@ -1661,20 +1661,19 @@
         };
 		
 		player.placeBomb = function() {
-console.log(this);
           if (this.bombs<1) {return;}
 		  this.bombs--;
 		  //playSound("placebomb");
         		
-			date = new Date();
-			ttimeplaced = date.getTime();
+			ttimeplaced = milliseconds
        
           playerBombs.push(aBomb({ 
             fuse: 4,
             x: this.x,
             y: this.y,
 			timeplaced: ttimeplaced,
-			armed: true
+			armed: true,
+			active: true
           }));
 
         };
