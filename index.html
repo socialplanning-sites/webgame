@@ -129,6 +129,7 @@
 		var bombsprite =Sprite("bomb");
 		var redbombsprite =Sprite("redbomb");
 		var shieldsprite =Sprite("bubble");
+		var crackedsprite =Sprite("cracked");
 		var explosionsprite=new Array(4);
 		explosionsprite[0] =Sprite("explosion0");
 		explosionsprite[1] =Sprite("explosion1");
@@ -206,6 +207,7 @@
 				I.ani++;
 				if (I.ani>3) {I.ani=0;}
 			};
+
 			I.checkCollide= function(targ) { //did the player bump into another object
 				tempx=I.x*16+16;
 				tempy=I.y*16+16;
@@ -230,11 +232,12 @@
 						I.timeplaced = milliseconds;
 						I.armed=true;
 			};
+			
+
+			
 			I.explode =function() {
-				//alert ("BOOM");
-				//check radius for enemies, player, hurt
 				//check radius for brick/darkwood, replace with grass/crater
-				//particle explosion
+				//particle smoke?
 			ptimeplaced = milliseconds;
        
 			  explosions.push(aExplosion({ 
@@ -622,6 +625,7 @@
 				height: 16,
 				x: 0,
 				y: 0,
+				cracked: false,
 				ani:0,
 				color: "#FFC020",
 				data: 0,
@@ -671,6 +675,9 @@
 					 }else{  //if strange data, draw a solid color
 				       canvas.fillStyle = bColors[0]; 
 					   canvas.fillRect((this.x-cam.x)*this.width, (this.y-cam.y)*this.height, this.width, this.height);
+					}
+					if(this.cracked){
+						crackedsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}
 				}
 				};
@@ -1874,6 +1881,13 @@
 		
 		}
         
+		function updateBombedTiles(px,py,r,merp){
+				for(i=px-1;i<px+r;i++){
+					for(j=py-1;j<py+r;j++){
+						if (merp.tiles[i][j].cracked){ merp.tiles[i][j].data=0;}
+					}
+				}
+			}
 	      
         function handleCollisions() {
           playerBullets.forEach(function(bullet) {
@@ -1894,6 +1908,7 @@
 		  
 		  			
 			  explosions.forEach(function(aExplosion) {
+			  updateBombedTiles(aExplosion.x,aExplosion.y,4,maps[0]);
 			  	enemies.forEach(function(enemy) {
 					if (enemy.checkCollide(aExplosion)) {enemy.hurt(40);}
 				});
