@@ -206,6 +206,14 @@
 				I.ani++;
 				if (I.ani>3) {I.ani=0;}
 			};
+			I.checkCollide= function(targ) { //did the player bump into another object
+				tempx=I.x*16+16;
+				tempy=I.y*16+16;
+				if((tempx > targ.x*16) && (tempx <targ.x*16+targ.width) && (tempy > targ.y*16) && (tempy <targ.y*16+targ.height)) {
+				return true;
+				}
+			return false;
+		  }	;
 			return I;
 		};
 		
@@ -227,7 +235,7 @@
 				//check radius for enemies, player, hurt
 				//check radius for brick/darkwood, replace with grass/crater
 				//particle explosion
-					ptimeplaced = milliseconds;
+			ptimeplaced = milliseconds;
        
 			  explosions.push(aExplosion({ 
 				duration: 1,
@@ -756,7 +764,16 @@
             
             this.active = false;
             // TODO: Add an explosion graphic
-          }
+          },
+		  		  
+		  checkCollide: function(targ) { //did the player bump into another object
+			tempx=this.x*16+16;
+			tempy=this.y*16+16;
+			if((tempx > targ.x*16) && (tempx <targ.x*16+targ.width) && (tempy > targ.y*16) && (tempy <targ.y*16+targ.height)) {
+			   return true;
+		    }
+			return false;
+		  }	
         
 		  };
 				  
@@ -1501,6 +1518,15 @@
               I.y >= 0 && I.y <= MAP_HEIGHT;
           };
         
+		  I.checkCollide= function(targ) { //did the player bump into another object
+			tempx=this.x*16+16;
+			tempy=this.y*16+16;
+			if((tempx > targ.x*16) && (tempx <targ.x*16+targ.width) && (tempy > targ.y*16) && (tempy <targ.y*16+targ.height)) {
+			   return true;
+		    }
+			return false;
+		  };	
+		
           I.sprite = Sprite("enemy1");
         
           I.draw = function(cam) {
@@ -1865,6 +1891,15 @@
 			enemy.hurt(player.sword.dmg);
 			}
           });
+		  
+		  			
+			  explosions.forEach(function(aExplosion) {
+			  	enemies.forEach(function(enemy) {
+					if (enemy.checkCollide(aExplosion)) {enemy.hurt(40);}
+				});
+				if(player.checkCollide(aExplosion)) {player.hurt(40);}
+				if((Smedly.active) && (aExplosion.checkCollide(Smedly))) {Smedly.hurt(40);}
+			});
 		  
 		  	if(Smedly.active){
 				Smedly.update();
