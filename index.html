@@ -7,7 +7,7 @@
   </head>
   <body>
 	<audio id="myAudio" preload="auto">
-    <source src="song.mp3" type="audio/mpeg" />
+    <source src="songu.mp3" type="audio/mpeg" />
 	Your browser does not support the audio element.
    	</audio>
 		
@@ -129,6 +129,7 @@
 		var bombsprite =Sprite("bomb");
 		var redbombsprite =Sprite("redbomb");
 		var shieldsprite =Sprite("bubble");
+		var crackedsprite =Sprite("cracked");
 		var explosionsprite=new Array(4);
 		explosionsprite[0] =Sprite("explosion0");
 		explosionsprite[1] =Sprite("explosion1");
@@ -206,6 +207,15 @@
 				I.ani++;
 				if (I.ani>3) {I.ani=0;}
 			};
+
+			I.checkCollide= function(targ) { //did the player bump into another object
+				tempx=I.x*16+16;
+				tempy=I.y*16+16;
+				if((tempx > targ.x*16) && (tempx <targ.x*16+targ.width) && (tempy > targ.y*16) && (tempy <targ.y*16+targ.height)) {
+				return true;
+				}
+			return false;
+		  }	;
 			return I;
 		};
 		
@@ -222,12 +232,13 @@
 						I.timeplaced = milliseconds;
 						I.armed=true;
 			};
+			
+
+			
 			I.explode =function() {
-				//alert ("BOOM");
-				//check radius for enemies, player, hurt
 				//check radius for brick/darkwood, replace with grass/crater
-				//particle explosion
-					ptimeplaced = milliseconds;
+				//particle smoke?
+			ptimeplaced = milliseconds;
        
 			  explosions.push(aExplosion({ 
 				duration: 1,
@@ -305,6 +316,9 @@
 			this.mDelta=0;
 			this.wasWheeled= false;
 			this.mouseIsDown= false;
+			this.mouseRightDown= false;
+			this.lFlag=false;
+			this.rFlag=false;
 		
 			
 			mouseXY= function(e) {
@@ -336,7 +350,9 @@
 			
 			mouseUp= function(e) {
 				if (!e) var e = event;
-				mouseIsDown = 0;
+				e.preventDefault();
+				if(e.which==1){	mouseIsDown = 0;}
+				if(e.which==3){	mouseRightDown = 0;}
 				mouseXY(e);
 			};
 
@@ -347,14 +363,20 @@
 
 			mouseDown= function(e) {
 				if (!e) var e = event;
-
-				mouseIsDown = 1;
-				mouseXY(e);
-				lastX=tx;
-				lastY=ty;
-				tx=Math.floor(this.mX/16);
-				ty=Math.floor(this.mY/16);
-
+				e.preventDefault();
+				if (e.which==1){
+					mouseIsDown = 1;
+					mouseXY(e);
+					lastX=tx;
+					lastY=ty;
+					tx=Math.floor(this.mX/16);
+					ty=Math.floor(this.mY/16);
+				}else {
+					mouseRightDown= true;
+					mouseXY(e);
+					tx=Math.floor(this.mX/16);
+					ty=Math.floor(this.mY/16);
+				}
 			};
 
 			this.touchDown= function() {
@@ -593,7 +615,21 @@
 					if (this.type==21) {
 						ply.rumham=true; playSound("ItemFanfare");
 					    textPause=true;
+						ply.maxbombs=100;
+						ply.maxhp=300;
+						ply.maxmp=400;
+						ply.hp=300;
+						ply.mp=400;
+						ply.hasbombs=true;
+						ply.bombs=100;
+						ply.sword=ironsword;
+						ply.dashboots=true;
+						ply.speed=10;
+						ply.fllipers=true;
 						ply.grabedsprite=this.sprite;
+						ply.key[0]=true;
+						ply.key[1]=true;
+						ply.key[2]=true;
 						textText="You found the Rum Ham!  Looks like you'll be getting HAMmered tonight!";
 					} //boots
 					}
@@ -614,6 +650,7 @@
 				height: 16,
 				x: 0,
 				y: 0,
+				cracked: false,
 				ani:0,
 				color: "#FFC020",
 				data: 0,
@@ -663,6 +700,9 @@
 					 }else{  //if strange data, draw a solid color
 				       canvas.fillStyle = bColors[0]; 
 					   canvas.fillRect((this.x-cam.x)*this.width, (this.y-cam.y)*this.height, this.width, this.height);
+					}
+					if(this.cracked){
+						crackedsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 					}
 				}
 				};
@@ -756,7 +796,16 @@
             
             this.active = false;
             // TODO: Add an explosion graphic
-          }
+          },
+		  		  
+		  checkCollide: function(targ) { //did the player bump into another object
+			tempx=this.x*16+16;
+			tempy=this.y*16+16;
+			if((tempx > targ.x*16) && (tempx <targ.x*16+targ.width) && (tempy > targ.y*16) && (tempy <targ.y*16+targ.height)) {
+			   return true;
+		    }
+			return false;
+		  }	
         
 		  };
 				  
@@ -895,7 +944,7 @@
 				canvas.fillText(this.bombs, 105, 64);
 				
 				canvas.fillText(milliseconds/1000, 105, 120);	
-				canvas.fillText(player.timelastmoved/1000, 105, 140);
+				canvas.fillText(Mouse.mouseRightDown, 105, 140);
 				
 				
 				canvas.fillStyle = "#5F9EA0";
@@ -1403,6 +1452,7 @@
 		stuff.push(new thing(18,23,30)); //hammer
 		stuff.push(new thing(19,32,30)); //book
 		stuff.push(new thing(20,41,26)); //boots
+		stuff.push(new thing(21,61,36)); //ham
 		
 		
         function Bullet(I) {  //player fired projectile
@@ -1501,6 +1551,15 @@
               I.y >= 0 && I.y <= MAP_HEIGHT;
           };
         
+		  I.checkCollide= function(targ) { //did the player bump into another object
+			tempx=this.x*16+16;
+			tempy=this.y*16+16;
+			if((tempx > targ.x*16) && (tempx <targ.x*16+targ.width) && (tempy > targ.y*16) && (tempy <targ.y*16+targ.height)) {
+			   return true;
+		    }
+			return false;
+		  };	
+		
           I.sprite = Sprite("enemy1");
         
           I.draw = function(cam) {
@@ -1640,6 +1699,13 @@
 				edcursor.y=Math.round(Mouse.mY/16)+camera.y;
 				if(Mouse.mouseIsDown){
 				  maps[0].setTile(edcursor.x,edcursor.y,edcursor.type)
+				}
+				if(Mouse.mouseRightDown){
+					Mouse.rFlag=true;
+				}
+				if((!Mouse.mouseRightDown) && (Mouse.rFlag)){
+				  Mouse.rFlag=false;
+				  maps[0].tiles[edcursor.x][edcursor.y].cracked=! maps[0].tiles[edcursor.x][edcursor.y].cracked;
 				}
 				if(Mouse.wasWheeled) {
 					Mouse.wasWheeled=false;
@@ -1848,6 +1914,16 @@
 		
 		}
         
+		function updateBombedTiles(px,py,r,merp){
+				for(i=px-1;i<px+r;i++){
+					for(j=py-1;j<py+r;j++){
+						if (merp.tiles[i][j].cracked){
+						merp.tiles[i][j].data=0;
+						merp.tiles[i][j].cracked=false;
+						}
+					}
+				}
+			}
 	      
         function handleCollisions() {
           playerBullets.forEach(function(bullet) {
@@ -1865,6 +1941,16 @@
 			enemy.hurt(player.sword.dmg);
 			}
           });
+		  
+		  			
+			  explosions.forEach(function(aExplosion) {
+			  updateBombedTiles(aExplosion.x,aExplosion.y,4,maps[0]);
+			  	enemies.forEach(function(enemy) {
+					if (enemy.checkCollide(aExplosion)) {enemy.hurt(30);}
+				});
+				if(player.checkCollide(aExplosion)) {player.hurt(30);}
+				if((Smedly.active) && (aExplosion.checkCollide(Smedly))) {Smedly.hurt(30);}
+			});
 		  
 		  	if(Smedly.active){
 				Smedly.update();
