@@ -84,6 +84,7 @@
         var FPS = 30;
 		var LAVA_RATE=2000;
 		var WATER_RATE=1000;
+		var CHARANI_RATE= 200;
 		//var keychart = ["w","a","d","s","up","right","down","left","m","n","shift"];
 		var darkgrasssprite = Sprite("darkgrass"); //begin loading images.  Eventually I should put them all on one .png file
 		var grasssprite = Sprite("grass");
@@ -774,6 +775,7 @@
 		  grabedsprite: 0,
 		  sword: 0,
 		  timelastmoved: 0,
+		  lastani: 0,
 		  speed: 70,
 		  init: function () {  //load sprites
 		    this.sword=nosword;
@@ -950,12 +952,17 @@
 			},
 			
 		  animate: function() { //TODO: make this time based, SLOWER
-		  if(this.ani==0){
-				this.ani=1;
-			}else{
-				this.ani=0;
-			}
-		  },
+		  
+		  if (milliseconds-this.lastani>CHARANI_RATE) {
+				this.lastani=milliseconds;
+			  if(this.ani==0){
+					this.ani=1;
+			  }else{
+					this.ani=0;
+			  }
+		  }
+			},
+
 		  
 		  update: function() {
             
@@ -1486,7 +1493,7 @@
 				lastani=milliseconds;
 				anicount=0;
 			}
-			if (tileani>4) {tileani=0} //tile animations
+			if (tileani>3) {tileani=0} //tile animations
 			if(textPause) {
 				if(keydown.space) {textPause=false;}
 			return
