@@ -1926,14 +1926,6 @@
                                   buildMapFromLoadedStuff('', stuff);
                                 });
                            }
-                                var obj = {};
-                                obj.tiles = maps[0].stringifyTiles();
-                                obj.cracked = maps[0].stringifyCracked();
-                                obj.stuff = stringifyStuff();
-                                obj = JSON.stringify(obj);
-                                $.post("http://server.webgame.zebra-associates.org/"+url, {'map': obj}, function(){ alert('okay, should be ready to go.');});
-			  }
-                                                    
 
 			  if(savekey.check()) {
 				maps[0].saveTiles("edsmap");
