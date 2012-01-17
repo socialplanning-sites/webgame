@@ -12,13 +12,13 @@
    	</audio>
 		
 		
-		<audio id="explosion" preload="auto">
+	<audio id="explosion" preload="auto">
     <source src="sounds/explosion.wav" type="audio/wav" />
-       </audio>
+    </audio>
 	   
 	<audio id="shoot" preload="auto">
     <source src="sounds/shoot.wav" type="audio/wav" />
-       </audio>
+    </audio>
 	
 	<audio id="coin" preload="auto"">
     <source src="sounds/coin.wav" type="audio/wav" />
@@ -1460,7 +1460,7 @@
 		maps.push(Map());
 		maps[0].loadDefaultTiles();  //so our map is maps[0]
 		
-		for(ijk=0;ijk<NUM_THINGS;ijk++) //fills edititems with all types of thigns
+		for(ijk=0;ijk<NUM_THINGS+1;ijk++) //fills edititems with all types of thigns
 		{
 				edititems.push(new thing(ijk,0,0));
 
@@ -1794,7 +1794,7 @@
 						edcursor.thingtrack++;
 					}
 						if (edcursor.type > NUM_TILES) {edcursor.type=0;}
-						if (edcursor.thingtrack > NUM_THINGS-1) {edcursor.thingtrack=0;}
+						if (edcursor.thingtrack > NUM_THINGS) {edcursor.thingtrack=0;}
 					}else{
 					if(edcursor.mode==0){
 						edcursor.type--;
@@ -1802,7 +1802,7 @@
 						edcursor.thingtrack--;
 					}
 						if (edcursor.type <0) {edcursor.type=NUM_TILES;}
-						if (edcursor.thingtrack <0) {edcursor.thingtrack=NUM_THINGS-1;}
+						if (edcursor.thingtrack <0) {edcursor.thingtrack=NUM_THINGS;}
 				    } 
 				}
 			}
