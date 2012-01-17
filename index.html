@@ -82,14 +82,16 @@
       //<![CDATA[
 		var textPause=false;
 		var textText="";
-        var CANVAS_WIDTH = 900;
-        var CANVAS_HEIGHT = 640;
+        	var CANVAS_WIDTH = 900;
+        	var CANVAS_HEIGHT = 640;
 		var MAP_WIDTH = 120;
-        var MAP_HEIGHT = 80;
-        var FPS = 30;
+       		var MAP_HEIGHT = 80;
+       		var FPS = 30;
 		var LAVA_RATE=2000;
 		var WATER_RATE=1000;
 		var CHARANI_RATE= 200;
+		var SPAWN_X=22;
+		var SPAWN_Y=19;
 		//var keychart = ["w","a","d","s","up","right","down","left","m","n","shift"];
 		var darkgrasssprite = Sprite("darkgrass"); //begin loading images.  Eventually I should put them all on one .png file
 		var grasssprite = Sprite("grass");
@@ -1256,8 +1258,8 @@
             
             //TODO: death animation, game over
 			this.kills=0;
-			this.x=30;
-			this.y=20
+			this.x=SPAWN_X;
+			this.y=SPAWN_Y;
 			this.hp=100;
 			this.gothurt=725;
 			playSound("dying");
@@ -1274,7 +1276,9 @@
 		  
 		  move: function (px,py,merp) {///placeholder
 				this.tiletype=merp.tiles[this.x][this.y].data;
-				if(milliseconds-this.timelastmoved<this.speed){ return; }
+				var slowed=0;
+				if(this.tiletype==3) {slowed=30;}
+				if(milliseconds-this.timelastmoved<this.speed+slowed){ return; }
 				if (this.tiletype==3) {playSound("Swim");}
 				if (this.tiletype==1) {playSound("GrassWalk");}
 				if (this.tiletype==20) {this.hurt(3);} //poison ground
