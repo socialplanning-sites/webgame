@@ -440,12 +440,10 @@
                           var tempstring = stringifyStuff(name);
 			  localStorage.setItem(name, tempstring);
 			}
-		
-		function loadStuff(name) {
+		function buildMapFromLoadedStuff(name, tempstring) {
 			stuff=[];
-			  var tempstring = localStorage.getItem(name);
-			  var tempobjs = JSON.parse(tempstring);
-			  for( var i=0; i<tempobjs.length; i++ ) {
+			var tempobjs = JSON.parse(tempstring);
+			for( var i=0; i<tempobjs.length; i++ ) {
 				var tempobj = tempobjs[i];
 				ning=new thing();
 				ning.x=tempobj.x;
@@ -453,8 +451,13 @@
 				ning.type=tempobj.type;
 				ning.setSprite();
 				stuff.push(ning);
-				}
 			}
+                };
+
+		function loadStuff(name) {
+			  var tempstring = localStorage.getItem(name);
+                          buildMapFromLoadedStuff(name, tempstring);
+		}
 			
 			function loadDefaultStuff() {
 			stuff=[];
@@ -1544,19 +1547,25 @@
 					}
 				}
 			};
-
-		    I.loadTiles = function (name) {
-				hempstring=localStorage.getItem(name);
+                    I.buildMapFromLoadedTiles = function(name, hempstring) {
 				tempstring=hempstring.split(",");
 				for (i=0;i<MAP_WIDTH; i++){
 					for (j=0;j<MAP_HEIGHT; j++){
 						I.tiles[i][j].data = tempstring[j+MAP_HEIGHT*i];
 					}
 				}
+                    };
+
+		    I.loadTiles = function (name) {
+				var hempstring=localStorage.getItem(name);
+                                I.buildMapFromLoadedTiles(name, hempstring);
 			};
 			
 			I.loadCracked = function (name) {
-				hempstring=localStorage.getItem(name);
+				var hempstring=localStorage.getItem(name);
+                                I.buildMapFromLoadedCracks(name, hempstring);
+                        };
+                        I.buildMapFromLoadedCracks = function(name, hempstring) {
 				tempstring=hempstring.split(",");
 				for (i=0;i<MAP_WIDTH; i++){
 					for (j=0;j<MAP_HEIGHT; j++){
