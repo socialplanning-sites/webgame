@@ -1966,8 +1966,8 @@
 					Mouse.lFlag=false;
 					if(edcursor.mode==2){
 						if(edcursor.cornered){
-							twidth=edcursor.x-edcursor.lastx;
-							theight=edcursor.y-edcursor.lasty;
+							twidth=edcursor.x-edcursor.lastx+1;
+							theight=edcursor.y-edcursor.lasty+1;
 							for (i=edcursor.lastx;i<edcursor.lastx+twidth;i++) {
 								for (j=edcursor.lasty;j<edcursor.lasty+theight;j++) {
 									maps[0].setTile(i,j,edcursor.type);
@@ -2285,27 +2285,7 @@
             aExplosion.draw(camera);
           });
 				 
-         //cover player in grass or water if neccisary
-		 if(maps[0].tiles[player.x][player.y+1].data==1) {
-			darkgrasssprite.draw(canvas, (player.x-camera.x)*16, (player.y-camera.y+1)*16);
-		
-		 }//todo work this into person.draw, so it work for all npcs
-		  if(maps[0].tiles[player.x+1][player.y+1].data==1) {
-			darkgrasssprite.draw(canvas, (player.x-camera.x+1)*16, (player.y-camera.y+1)*16);
-		
-		 }
-		 
-		 canvas.save();
-		 canvas.globalAlpha=.60;
-		  if(maps[0].tiles[player.x][player.y+1].data==3) {
-			watersprite.draw(canvas, (player.x-camera.x)*16, (player.y-camera.y+1)*16);
-		
-		 }//todo work this into person.draw, so it work for all npcs
-		  if(maps[0].tiles[player.x+1][player.y+1].data==3) {
-			watersprite.draw(canvas, (player.x-camera.x+1)*16, (player.y-camera.y+1)*16);
-		
-		 }
-		 canvas.restore();
+
 		 
 		 Wizard.draw(camera);
 		 if(Mode==0){
@@ -2409,7 +2389,6 @@
 		
 		  player.move=function (px,py,merp) {
 				if(this.frozen) {return;}
-				this.tiletype=merp.tiles[this.x][this.y].data;
 				var slowed=0;
 				if(this.tiletype==3) {slowed=30;}
 				if(milliseconds-this.timelastmoved<this.speed+slowed){ return; }
@@ -2420,6 +2399,7 @@
 				if (this.tiletype==20) {this.hurt(3);} //poison ground
 				this.x+=px;
 				this.y+=py
+				this.tiletype=merp.tiles[this.x][this.y].data;
 				this.timelastmoved=milliseconds;
 				camera.center(this);
 				this.animate();
@@ -2444,6 +2424,31 @@
 			{
 				this.sprites[this.dir][this.ani].draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 			}
+			
+			         //cover player in grass if neccisary
+			if(maps[0].tiles[this.x][this.y+1].data==1) {
+			darkgrasssprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y+1)*16);
+		
+			}
+			if(maps[0].tiles[this.x+1][this.y+1].data==1) {
+			darkgrasssprite.draw(canvas, (this.x-cam.x+1)*16, (this.y-cam.y+1)*16);
+		
+			}
+			
+			
+			//cover player in water if neccisary
+			canvas.save();
+			canvas.globalAlpha=.60;
+			if(maps[0].tiles[this.x][this.y+1].data==3) {
+			watersprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y+1)*16);
+
+			}
+			if(maps[0].tiles[this.x+1][this.y+1].data==3) {
+			watersprite.draw(canvas, (this.x-cam.x+1)*16, (this.y-cam.y+1)*16);
+
+			}
+			canvas.restore();
+			
 			if (this.magicShield){
 				canvas.save();
 				canvas.globalAlpha=.5;
