@@ -427,13 +427,17 @@
 		
 		var stuff=[];
 		
-		function saveStuff(name){
+		function stringifyStuff(name){
 			  var tempobjs = [];
 			  for (i=0;i<stuff.length; i++){
 				var tempobj = {'type': stuff[i].type, 'x': stuff[i].x, 'y': stuff[i].y};
 				tempobjs.push(tempobj);
 			  }
 			  var tempstring = JSON.stringify(tempobjs);
+                          return tempstring;
+                 }
+		function saveStuff(name){
+                          var tempstring = stringifyStuff(name);
 			  localStorage.setItem(name, tempstring);
 			}
 		
@@ -1491,8 +1495,7 @@
 					}
 				}
 			};
-		    I.saveTiles = function (name) {
-			    //var myString = JSON.stringify(I.tiles); //!?!
+                    I.stringifyTiles = function(name) {
 				var tempstring= "";
 				for (i=0;i<MAP_WIDTH; i++){
 					for (j=0;j<MAP_HEIGHT; j++){
@@ -1500,12 +1503,16 @@
 						tempstring += ","
 					}
 				}
+                                return tempstring;
+                    };
+
+		    I.saveTiles = function (name) {
+                                var tempstring = I.stringifyTiles(name);
 				localStorage.setItem(name, tempstring);
 
 			};
 				
-		    I.saveCracked = function (name) {
-			    //var myString = JSON.stringify(I.tiles); //!?!
+		    I.stringifyCracked = function (name) {
 				var tempstring= "";
 				for (i=0;i<MAP_WIDTH; i++){
 					for (j=0;j<MAP_HEIGHT; j++){
@@ -1513,6 +1520,11 @@
 						tempstring += ","
 					}
 				}
+                                return tempstring;
+                     };
+
+		    I.saveCracked = function (name) {
+                                var tempstring = I.stringifyCracked(name);
 				localStorage.setItem(name, tempstring);
 
 			};
