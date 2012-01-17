@@ -1384,7 +1384,7 @@
 			  
 			  if(slowkey.check()) {
 				this.mode++;
-				if (this.mode>2) {this.mode=0;} //NUM EDIT MODES
+				if (this.mode>3) {this.mode=0;} //NUM EDIT MODES
 			  }
 			  
 			  if(cmousekey.check()) {
@@ -1917,6 +1917,21 @@
 							edcursor.lasty=edcursor.y;
 							edcursor.cornered=true;
 						}
+					}else if(edcursor.mode==3){
+						if(edcursor.cornered){
+							twidth=edcursor.x-edcursor.lastx;
+							theight=edcursor.y-edcursor.lasty;
+							for (i=edcursor.lastx;i<edcursor.lastx+twidth;i++) {maps[0].setTile(i,edcursor.lasty,edcursor.type);}
+							for (i=edcursor.lastx;i<edcursor.lastx+twidth;i++) {maps[0].setTile(i,edcursor.y,edcursor.type);}
+							for (j=edcursor.lasty;j<edcursor.lasty+theight;j++) {maps[0].setTile(edcursor.x,j,edcursor.type);}
+							for (j=edcursor.lasty;j<edcursor.lasty+theight;j++) {maps[0].setTile(edcursor.lastx,j,edcursor.type);}
+							maps[0].setTile(edcursor.x,edcursor.y,edcursor.type);
+							edcursor.cornered=false;
+						}else {
+							edcursor.lastx=edcursor.x;
+							edcursor.lasty=edcursor.y;
+							edcursor.cornered=true;
+						}
 					}
 				}
 				
@@ -1934,7 +1949,7 @@
 				if(Mouse.wasWheeled) {
 					Mouse.wasWheeled=false;
 					if(Mouse.mDelta>0) {
-					if(edcursor.mode==0){
+					if((edcursor.mode==0) || (edcursor.mode==2)|| (edcursor.mode==3)){
 						edcursor.type++;
 					}else if(edcursor.mode==1){
 						edcursor.thingtrack++;
@@ -1942,7 +1957,7 @@
 						if (edcursor.type > NUM_TILES) {edcursor.type=0;}
 						if (edcursor.thingtrack > NUM_THINGS) {edcursor.thingtrack=0;}
 					}else{
-					if(edcursor.mode==0){
+					if((edcursor.mode==0)  || (edcursor.mode==2)|| (edcursor.mode==3)){
 						edcursor.type--;
 					}else if(edcursor.mode==1){
 						edcursor.thingtrack--;
@@ -2246,7 +2261,14 @@
 					canvas.fillText("Placing item:", 16, 42);
 					edititems[edcursor.thingtrack].sprite.draw(canvas,130,36);
 				}else if(edcursor.mode==2) {
-					canvas.fillText("Filled Rect", 16, 42);
+					canvas.fillText("Solid Rect", 16, 42);
+					if(!edcursor.cornered) {	
+						canvas.fillText("Select Top-Left Corner", 16, 64);
+					}else{
+						canvas.fillText("Select Bottom-Right Corner", 16, 64);
+					}
+				}else if(edcursor.mode==3) {
+					canvas.fillText("Empty Rect", 16, 42);
 					if(!edcursor.cornered) {	
 						canvas.fillText("Select Top-Left Corner", 16, 64);
 					}else{
