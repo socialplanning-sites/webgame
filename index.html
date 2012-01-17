@@ -6,7 +6,7 @@
     <script language="javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type="text/javascript"></script><script language="javascript" src="javascripts/jquery.hotkeys.js" type="text/javascript"></script><script language="javascript" src="javascripts/key_status.js" type="text/javascript"></script><script language="javascript" src="javascripts/util.js" type="text/javascript"></script><script language="javascript" src="javascripts/sprite.js" type="text/javascript"></script><script language="javascript" src="javascripts/sound.js" type="text/javascript"></script>
   </head>
   <body>
-  <audio id="myAudio" preload="auto">
+	<audio id="myAudio" preload="auto">
     <source src="songu.mp3" type="audio/mpeg" />
 	Your browser does not support the audio element.
    	</audio>
@@ -130,6 +130,7 @@
 		var redbombsprite =Sprite("redbomb");
 		var shieldsprite =Sprite("bubble");
 		var crackedsprite =Sprite("cracked");
+		var icesprite =Sprite("frozen");
 		var explosionsprite=new Array(4);
 		explosionsprite[0] =Sprite("explosion0");
 		explosionsprite[1] =Sprite("explosion1");
@@ -146,6 +147,7 @@
 
 		var NUM_TILES=20; //numer of tile types
 		var NUM_THINGS=21;
+		var FROZE_DUR=2000;
 
         var canvasElement = $("<canvas width='" + CANVAS_WIDTH + 
           "' height='" + CANVAS_HEIGHT + "'></canvas");
@@ -919,6 +921,8 @@
           height: 32,
 		  ani: 0,
 		  cash: 0,
+		  frozen: false,
+		  frozetime: 0,
 		  maxcash: 200,
 		  kills: 0,
 		  gothurt: 0,
@@ -1063,6 +1067,10 @@
 			//graphic?
 			//Sound.play("coin");
           },
+		  freeze: function() {
+			this.frozen=true;
+			this.frozetime=milliseconds;
+		  },
 		  
 		  
 		  hitsword: function (px,py,pw,ph){//sword collision detection
@@ -1159,8 +1167,8 @@
 					}
 
 			}
-					
-					
+			if((this.frozen) && (milliseconds-this.frozetime>FROZE_DUR)){ this.frozen=false; }
+			
 				
 
           },
@@ -1538,7 +1546,7 @@
 				stuff.push(new thing(0,tempx,tempy));
 			}
 		}
-		/*stuff.push(new thing(1,50,65));  //place heart container
+		stuff.push(new thing(1,50,65));  //place heart container
 		stuff.push(new thing(5,49,24)); //mana potion
 		stuff.push(new thing(6,55,24)); //mana max up
 		stuff.push(new thing(2,49,26)); //gold
@@ -1548,16 +1556,16 @@
 		stuff.push(new thing(9,37,32)); //green key
 		stuff.push(new thing(8,80,16)); //blue key
 		stuff.push(new thing(13,11,16)); //wooden sword
-		stuff.push(new thing(14,9,16)); //stone sword
-		stuff.push(new thing(15,13,16)); //iron sword
+		//stuff.push(new thing(14,9,16)); //stone sword
+		//stuff.push(new thing(15,13,16)); //iron sword
 		stuff.push(new thing(16,52,24)); //flippers
 		stuff.push(new thing(17,11,26)); //bomb
 		
 		stuff.push(new thing(18,23,30)); //hammer
 		stuff.push(new thing(19,32,30)); //book
 		stuff.push(new thing(20,41,26)); //boots
-		stuff.push(new thing(21,61,36)); //ham
-		*/
+		//stuff.push(new thing(21,61,36)); //ham
+		
 		
         function Bullet(I) {  //player fired projectile
           I.active = true;
@@ -2235,6 +2243,7 @@
         }
 		
 		  player.move=function (px,py,merp) {
+				if(this.frozen) {return;}
 				this.tiletype=merp.tiles[this.x][this.y].data;
 				if(milliseconds-this.timelastmoved<this.speed){ return; }
 				if (this.tiletype==3) {playSound("Swim");}
@@ -2270,6 +2279,13 @@
 				canvas.save();
 				canvas.globalAlpha=.5;
 				shieldsprite.draw(canvas, (this.x-cam.x)*16-16, (this.y-cam.y)*16-16);
+				canvas.restore();
+			}
+			
+			if (this.frozen){
+				canvas.save();
+				canvas.globalAlpha=.5;
+				icesprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 				canvas.restore();
 			}
 		
