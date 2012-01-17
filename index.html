@@ -3,7 +3,7 @@
   <head>
     <title>It's an homage!!</title>
     <link href="/stylesheets/screen.css" media="all" rel="stylesheet" type="text/css"/>
-    <script language="javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type="text/javascript"></script><script language="javascript" src="javascripts/jquery.hotkeys.js" type="text/javascript"></script><script language="javascript" src="javascripts/key_status.js" type="text/javascript"></script><script language="javascript" src="javascripts/util.js" type="text/javascript"></script><script language="javascript" src="javascripts/sprite.js" type="text/javascript"></script><script language="javascript" src="javascripts/sound.js" type="text/javascript"></script>
+    <script language="javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script><script language="javascript" src="javascripts/jquery.hotkeys.js" type="text/javascript"></script><script language="javascript" src="javascripts/key_status.js" type="text/javascript"></script><script language="javascript" src="javascripts/util.js" type="text/javascript"></script><script language="javascript" src="javascripts/sprite.js" type="text/javascript"></script><script language="javascript" src="javascripts/sound.js" type="text/javascript"></script>
   </head>
   <body>
 	<audio id="myAudio" preload="auto">
@@ -1310,6 +1310,9 @@
           y: 1,
 		  slow: false,
 		  mouse: true,
+		  lastx:0,
+		  lasty:0,
+		  cornerd: false,
 		  size: 1, //TODO: add for loops to draw, placement to make larger brush size, center it?
 		  type: 1,
 		  thingtrack:0,
@@ -1380,7 +1383,8 @@
 			  }
 			  
 			  if(slowkey.check()) {
-				this.mode=!this.mode;
+				this.mode++;
+				if (this.mode>2) {this.mode=0;} //NUM EDIT MODES
 			  }
 			  
 			  if(cmousekey.check()) {
@@ -1885,14 +1889,37 @@
 			 if (edcursor.mouse) {
 				edcursor.x=Math.round(Mouse.mX/16)+camera.x;
 				edcursor.y=Math.round(Mouse.mY/16)+camera.y;
-				if(Mouse.mouseIsDown){
+				if(Mouse.mouseIsDown){ //for mouse held
+					Mouse.lFlag=true;
 					if(edcursor.mode==0){
 						maps[0].setTile(edcursor.x,edcursor.y,edcursor.type)
 					}else if(edcursor.mode==1){
 						stuff.push(new thing(edcursor.thingtrack,edcursor.x,edcursor.y));
 					}
+					
 				  
 				}
+				
+				if((!Mouse.mouseIsDown) && (Mouse.lFlag)){ //for single click
+					Mouse.lFlag=false;
+					if(edcursor.mode==2){
+						if(edcursor.cornered){
+							twidth=edcursor.x-edcursor.lastx;
+							theight=edcursor.y-edcursor.lasty;
+							for (i=edcursor.lastx;i<edcursor.lastx+twidth;i++) {
+								for (j=edcursor.lasty;j<edcursor.lasty+theight;j++) {
+									maps[0].setTile(i,j,edcursor.type);
+								}
+							}
+							edcursor.cornered=false;
+						}else {
+							edcursor.lastx=edcursor.x;
+							edcursor.lasty=edcursor.y;
+							edcursor.cornered=true;
+						}
+					}
+				}
+				
 				if(Mouse.mouseRightDown){
 					Mouse.rFlag=true;
 				}
@@ -2218,6 +2245,13 @@
 				}else if (edcursor.mode==1) {
 					canvas.fillText("Placing item:", 16, 42);
 					edititems[edcursor.thingtrack].sprite.draw(canvas,130,36);
+				}else if(edcursor.mode==2) {
+					canvas.fillText("Filled Rect", 16, 42);
+					if(!edcursor.cornered) {	
+						canvas.fillText("Select Top-Left Corner", 16, 64);
+					}else{
+						canvas.fillText("Select Bottom-Right Corner", 16, 64);
+					}
 				}
 		}
 			
