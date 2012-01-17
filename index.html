@@ -428,35 +428,27 @@
 		var stuff=[];
 		
 		function saveStuff(name){
-				var tempstring= "";
-				tempstring+=stuff.length;
-				tempstring+=";";
-				for (i=0;i<stuff.length; i++){
-						tempstring = tempstring +stuff[i].type;
-						tempstring += ",";
-				}
-				tempstring += ";"
-				for (i=0;i<stuff.length; i++){
-						tempstring = tempstring +stuff[i].x;
-						tempstring += ",";
-				}
-				tempstring += ";"
-				for (i=0;i<stuff.length; i++){
-						tempstring = tempstring +stuff[i].y;
-						tempstring += ",";
-				}
-				tempstring += ";"
-				localStorage.setItem(name, tempstring);
-		}
+			  var tempobjs = [];
+			  for (i=0;i<stuff.length; i++){
+				var tempobj = {'type': stuff[i].type, 'x': stuff[i].x, 'y': stuff[i].y};
+				tempobjs.push(tempobj);
+			  }
+			  var tempstring = JSON.stringify(tempobjs);
+			  localStorage.setItem(name, tempstring);
+			}
 		
 		function loadStuff(name) {
-				hempstring=localStorage.getItem(name);
-				tempstring=hempstring.split(";");
-				temper=hempstring[0];
-				for (i=0;i<temper; i++){
-///save and load it one thing at a time?  first type for all, then x for all, then y for all?
-					///stuff.push();
-
+			stuff=[];
+			  var tempstring = localStorage.getItem(name);
+			  var tempobjs = JSON.parse(tempstring);
+			  for( var i=0; i<tempobjs.length; i++ ) {
+				var tempobj = tempobjs[i];
+				ning=new thing();
+				ning.x=tempobj.x;
+				ning.y=tempobj.y;
+				ning.type=tempobj.type;
+				ning.setSprite();
+				stuff.push(ning);
 				}
 			}
 		
@@ -559,8 +551,62 @@
 			}
 			
 			this.collectable= true;
-			this.setSprite= function(name) {
-				this.sprite= Sprite(name);
+			this.setSprite= function() {
+				if (this.type==1) {
+				this.sprite= Sprite("heart");
+				this.name="Heart Cointainer";
+			}else if (this.type==2) {
+				this.sprite= Sprite("gold");
+				this.name="Gold Coin";
+			}else if (this.type==3) {
+				this.sprite= Sprite("silver");
+				this.name="Silver Coin";
+			}else if (this.type==4) {
+				this.sprite= Sprite("copper");
+				this.name="Copper Coin";
+			}else if (this.type==5) {
+				this.sprite= Sprite("manapotion");
+				this.name="Mana Potion";
+			}else if (this.type==6) {
+				this.sprite= Sprite("manaup");
+				this.name="Max Mana Up";
+			}else if (this.type==7) {
+				this.sprite= Sprite("redkey");
+				this.name="Red Key";
+			}else if (this.type==8) {
+				this.sprite= Sprite("bluekey");
+				this.name="Blue Key";
+			}else if (this.type==9) {
+				this.sprite= Sprite("greenkey");
+				this.name="Green Key";
+			}else if (this.type==13) {
+				this.sprite= Sprite("woodensword");
+				this.name="Wooden Sword";
+			}else if (this.type==14) {
+				this.sprite= Sprite("stonesword");
+				this.name="Stone Sword";
+			}else if (this.type==15) {
+				this.sprite= Sprite("ironsword");
+				this.name="Iron Sword";
+			}else if (this.type==16) {
+				this.sprite= Sprite("flippers");
+				this.name="Flippers";
+			}else if (this.type==17) {
+				this.sprite= Sprite("bomb");
+				this.name="Bomb";
+			}else if (this.type==18) {
+				this.sprite= Sprite("hammer");
+				this.name="Hammer";
+			}else if (this.type==19) {
+				this.sprite= Sprite("book");
+				this.name="Book";
+			}else if (this.type==20) {
+				this.sprite= Sprite("boots");
+				this.name="Speed Boots";
+			}else if (this.type==21) {
+				this.sprite= Sprite("rumham");
+				this.name="RUM HAM";
+			}
 			};
 			this.draw= function(cam) {
 				this.sprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
@@ -1409,6 +1455,7 @@
 				}
 			};
 			I.clear =function(){
+				stuff=[];
 				for (i=0;i<MAP_WIDTH; i++){
 					for (j=0;j<MAP_HEIGHT; j++){
 						I.tiles[i][j]= makeNewTile();
@@ -1821,14 +1868,14 @@
 			  if(savekey.check()) {
 				maps[0].saveTiles("edsmap");
 				maps[0].saveCracked("edscrack");
-				//saveStuff("edsstuff");
+				saveStuff("edsstuff");
 				
 			  }
 			  			  
 			  if(loadkey.check()) {
 				maps[0].loadTiles("edsmap");
 				maps[0].loadCracked("edscrack");
-				//loadStuff("edsstuff");
+				loadStuff("edsstuff");
 			  }
 			  
 			  if(helpkey.check()){
