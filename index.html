@@ -2410,6 +2410,10 @@
 		  player.move=function (px,py,merp) {
 				if(this.frozen) {return;}
 				this.tiletype=merp.tiles[this.x][this.y].data;
+				var slowed=0;
+				if(this.tiletype==3) {slowed=30;}
+				if(milliseconds-this.timelastmoved<this.speed+slowed){ return; }
+				if (this.tiletype==3) {playSound("Swim");}
 				if(milliseconds-this.timelastmoved<this.speed){ return; }
 				if (this.tiletype==3) {playSound("Swim");}
 				if (this.tiletype==1) {playSound("GrassWalk");}
