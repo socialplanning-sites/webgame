@@ -1759,7 +1759,8 @@
 		  I.tiletype=0;
 		  I.flippers=true;
 		  I.key=[];
-		  
+		  I.ani=0;
+		  I.lastani=0;
 		  I.def=1;
 		  I.gothurt=0;
           I.active = true;
@@ -1774,6 +1775,20 @@
         
           I.width = 32;
           I.height = 32;
+		  I.sprite=new Array(2);
+		  
+		  I.animate= function() { 
+		  if (milliseconds-this.lastani>CHARANI_RATE) {
+				I.lastani=milliseconds;
+			  if(I.ani==0){
+					I.ani=1;
+			  }else{
+					I.ani=0;
+			  }
+		  }
+		};
+
+		  
 		  I.move=function (px,py,merp) {
 				if(this.frozen) {return;}
 				var slowed=0;
@@ -1805,7 +1820,7 @@
 						}
 				}
 
-				//this.animate();
+				I.animate();
 				
 			};
 		  
@@ -1836,11 +1851,13 @@
 			I.key[1]=true;
 			I.key[2]=true;
 			if(this.name=="Evil Bunny"){
-				I.sprite = Sprite("enemy1");
+				I.sprite[0] = Sprite("enemy1");
+				I.sprite[1] = Sprite("enemy1");
 				I.hp=10;
 				I.maxhp=10;
 			}else if(this.name=="Chaser"){
-				I.sprite = Sprite("chaser");
+				I.sprite[0] = Sprite("chaser");
+				I.sprite[1] = Sprite("chaser2");
 				I.hp=30;
 				I.speed=200;
 				I.maxhp=30;
@@ -1854,11 +1871,11 @@
 				I.gothurt--;
 				canvas.save();
 				if(I.gothurt%2==0){canvas.globalAlpha = 0.5;}
-				this.sprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+				this.sprite[this.ani].draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 				canvas.restore();
 			}else
 			{
-				this.sprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+				this.sprite[this.ani].draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 			}
 			if(Mouse.isOver(I,cam)) {drawmousetext(I,cam);}
           };
