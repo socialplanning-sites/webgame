@@ -488,7 +488,7 @@
 			  Wizard.y=tempstring[5];
 			}
 			
-			function buildMapFromJunk(tempsrting){
+			function buildMapFromJunk(tempstring){
 			  tempstring=tempstring.split(",");
 			  SPAWN_X=tempstring[0];
 			  SPAWN_Y=tempstring[1];
@@ -2231,7 +2231,7 @@
                                   maps[0].buildMapFromLoadedCracks('', cracked);
                                   buildMapFromLoadedStuff('', stuff);
 								  buildMapFromLoadedSpawners('', spawners);
-								  buildMapFromJunk('', junk);
+								  buildMapFromJunk( junk);
                                 }
                                 $.getJSON("http://server.webgame.zebra-associates.org/"+url+"?callback=?", callback);
                            }
