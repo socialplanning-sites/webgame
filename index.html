@@ -1649,9 +1649,25 @@
 		       
 	    maps = [];
 		maps.push(Map());
+                
+              if( window.location.hash && window.location.hash.match("#map=") ) {
+                                  var url = window.location.hash.substr(5);
+                                  var callback = function(data) {
+                                  var obj = data;
+                                  var tiles = obj.tiles;
+                                  var cracked = obj.cracked;
+                                  var stuff = obj.stuff;
+                                  maps[0].buildMapFromLoadedTiles('', tiles);
+                                  maps[0].buildMapFromLoadedCracks('', cracked);
+                                  buildMapFromLoadedStuff('', stuff);
+                                }
+                                $.getJSON("http://server.webgame.zebra-associates.org/"+url+"?callback=?", callback);
+
+              } else {
 		maps[0].loadDefaultTiles();  //so our map is maps[0]
 		loadDefaultStuff();
-		
+	      }
+
 		for(ijk=0;ijk<NUM_THINGS+1;ijk++) //fills edititems with all types of thigns
 		{
 				edititems.push(new thing(ijk,0,0));
