@@ -140,7 +140,7 @@
 		explosionsprite[3] =Sprite("explosion3");
 		
 
-		var editHistory=new Array(6);
+		var editHistory=[];
 		Mode = 0;
 		TopView=true;
 		var playerBullets = [];
@@ -1070,7 +1070,7 @@
 				canvas.fillText("Bombs:", 43, 64);
 				canvas.fillText(this.bombs, 105, 64);
 				
-				canvas.fillText(milliseconds/1000, 105, 120);	
+				canvas.fillText(editHistory.length,105, 120);	
 				canvas.fillText(Mouse.mouseRightDown, 105, 140);
 				
 				
@@ -1847,8 +1847,8 @@
 		document.getElementById("myAudio").play(); //starts music
 
 		player.init();
-		addEdit(maps[0]);
-		addEdit(maps[0]); //todo!?!
+		//addEdit(maps[0]);
+
 		
 	//------------MAIN LOOP-----------------------------------------
         function update() {
@@ -1960,8 +1960,10 @@
 				edcursor.x=Math.round(Mouse.mX/16)+camera.x;
 				edcursor.y=Math.round(Mouse.mY/16)+camera.y;
 				if(Mouse.mouseIsDown){ //for mouse held
+					if((!Mouse.lFlag) && (edcursor.mode==0)) {addEdit(maps[0]);}
 					Mouse.lFlag=true;
 					if(edcursor.mode==0){
+						//addEdit(maps[0]);
 						maps[0].setTile(edcursor.x,edcursor.y,edcursor.type)
 					}else if(edcursor.mode==1){
 						stuff.push(new thing(edcursor.thingtrack,edcursor.x,edcursor.y));
@@ -1972,9 +1974,10 @@
 				
 				if((!Mouse.mouseIsDown) && (Mouse.lFlag)){ //for single click
 					Mouse.lFlag=false;
-					if((edcursor.mode==0)  || (edcursor.mode==2) ||(edcursor.mode==3) ) {addEdit(maps[0]);}
+					//if((edcursor.mode==0)  || (edcursor.mode==2) ||(edcursor.mode==3) ) {addEdit(maps[0]);}
 					if(edcursor.mode==2){
 						if(edcursor.cornered){
+							addEdit(maps[0]);
 							twidth=edcursor.x-edcursor.lastx+1;
 							theight=edcursor.y-edcursor.lasty+1;
 							for (i=edcursor.lastx;i<edcursor.lastx+twidth;i++) {
@@ -1982,7 +1985,7 @@
 									maps[0].setTile(i,j,edcursor.type);
 								}
 							}
-							edcursor.cornered=false;
+							edcursor.cornered=false;	
 						}else {
 							edcursor.lastx=edcursor.x;
 							edcursor.lasty=edcursor.y;
@@ -1990,6 +1993,7 @@
 						}
 					}else if(edcursor.mode==3){
 						if(edcursor.cornered){
+							addEdit(maps[0]);
 							twidth=edcursor.x-edcursor.lastx;
 							theight=edcursor.y-edcursor.lasty;
 							for (i=edcursor.lastx;i<edcursor.lastx+twidth;i++) {maps[0].setTile(i,edcursor.lasty,edcursor.type);}
@@ -2260,8 +2264,9 @@
 			editHistory.push(empstr);
 		}
 		function undoEdit(){
-		if(editHistory.length<2){ return;}
+		if(editHistory.length<1){ return;}
 			var empstr=editHistory.pop();
+			if (!empstr) {  alert ("undoEdit: empster not defined");return;}
 			maps[0].buildMapFromLoadedTiles( "name", empstr);
 		
 		};
@@ -2318,6 +2323,10 @@
 				canvas.textBaseline = "middle";
 				canvas.fillStyle = "white";
 				canvas.fillText("EDIT MODE", 16, 16);
+				
+				//deug
+				canvas.fillText(editHistory.length,105, 120);	
+				
 				if(edcursor.mode==0) {
 					canvas.fillText("Placing Tiles", 16, 42);
 				}else if (edcursor.mode==1) {
