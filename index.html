@@ -480,22 +480,22 @@
 			function loadJunk(name){
 			  var tempstring = localStorage.getItem(name);
 			  tempstring=tempstring.split(",");
-			  SPAWN_X=tempstring[0];
-			  SPAWN_Y=tempstring[1];
-			  Smedly.x=tempstring[2];
-			  Smedly.y=tempstring[3];
-			  Wizard.x=tempstring[4];
-			  Wizard.y=tempstring[5];
+			  SPAWN_X=parseInt(tempstring[0]);
+			  SPAWN_Y=parseInt(tempstring[1]);
+			  Smedly.x=parseInt(tempstring[2]);
+			  Smedly.y=parseInt(tempstring[3]);
+			  Wizard.x=parseInt(tempstring[4]);
+			  Wizard.y=parseInt(tempstring[5]);
 			}
 			
 			function buildMapFromJunk(tempstring){
 			  tempstring=tempstring.split(",");
-			  SPAWN_X=tempstring[0];
-			  SPAWN_Y=tempstring[1];
-			  Smedly.x=tempstring[2];
-			  Smedly.y=tempstring[3];
-			  Wizard.x=tempstring[4];
-			  Wizard.y=tempstring[5];
+			  SPAWN_X=parseInt(tempstring[0]);
+			  SPAWN_Y=parseInt(tempstring[1]);
+			  Smedly.x=parseInt(tempstring[2]);
+			  Smedly.y=parseInt(tempstring[3]);
+			  Wizard.x=parseInt(tempstring[4]);
+			  Wizard.y=parseInt(tempstring[5]);
 			}
 			
 			
@@ -1335,7 +1335,7 @@
 			this.x=SPAWN_X;
 			this.y=SPAWN_Y;
 			this.hp=100;
-			this.gothurt=725;
+			this.gothurt=25;
 			playSound("dying");
 
           },
@@ -1576,6 +1576,8 @@
 			};
 			I.clear =function(){
 				stuff=[];
+				spawners=[];
+				enemies=[];
 				for (i=0;i<MAP_WIDTH; i++){
 					for (j=0;j<MAP_HEIGHT; j++){
 						I.tiles[i][j]= makeNewTile();
@@ -2221,7 +2223,8 @@
                                 form.submit();
 			  }
 			  if(serverloadkey.check()) {
-                                var url = prompt("What map do you want to load?  (letters/numbers only please.)");
+                                maps[0].clear();
+								var url = prompt("What map do you want to load?  (letters/numbers only please.)");
                                 var callback = function(data) {
                                   var obj = data;
                                   var tiles = obj.tiles;
