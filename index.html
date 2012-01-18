@@ -140,6 +140,7 @@
 		explosionsprite[3] =Sprite("explosion3");
 		
 
+		var editHistory=new Array(6);
 		Mode = 0;
 		TopView=true;
 		var playerBullets = [];
@@ -409,7 +410,7 @@
 		var loadkey=new akey("l");
 
                 var serversavekey=new akey("i");
-                var serverloadkey=new akey("k");
+				var serverloadkey=new akey("k");
 
 		var upkey=new akey("w");
 		var leftkey=new akey("a");
@@ -428,7 +429,8 @@
 	    var defkey=new akey("q");
 		var magickey=new akey("e");
 		var mgcyclekey=new akey("r");
-		var usekey=new akey("space");		
+		var usekey=new akey("space");	
+		var undokey=new akey("z");		
 		
 		var stuff=[];
 		
@@ -1419,6 +1421,10 @@
 					
 			  }
 			  
+			  if(undokey.check()){
+				undoEdit();
+			  }
+			  
 			  if(slowkey.check()) {
 				this.mode++;
 				if (this.mode>3) {this.mode=0;} //NUM EDIT MODES
@@ -1841,6 +1847,8 @@
 		document.getElementById("myAudio").play(); //starts music
 
 		player.init();
+		addEdit(maps[0]);
+		addEdit(maps[0]); //todo!?!
 		
 	//------------MAIN LOOP-----------------------------------------
         function update() {
@@ -1964,6 +1972,7 @@
 				
 				if((!Mouse.mouseIsDown) && (Mouse.lFlag)){ //for single click
 					Mouse.lFlag=false;
+					if((edcursor.mode==0)  || (edcursor.mode==2) ||(edcursor.mode==3) ) {addEdit(maps[0]);}
 					if(edcursor.mode==2){
 						if(edcursor.cornered){
 							twidth=edcursor.x-edcursor.lastx+1;
@@ -2244,6 +2253,18 @@
           }));
 
         };
+
+		function addEdit(merp){
+			//if(editHistory.length>6) {editHistory.shift();}
+			var empstr=merp.stringifyTiles();
+			editHistory.push(empstr);
+		}
+		function undoEdit(){
+		if(editHistory.length<2){ return;}
+			var empstr=editHistory.pop();
+			maps[0].buildMapFromLoadedTiles( "name", empstr);
+		
+		};
         
         
         function draw() { //Main render function
