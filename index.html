@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
   <head>
-    <title>It's an homage!!</title>
+    <title>Go kill Smedly!!</title>
     <link href="/stylesheets/screen.css" media="all" rel="stylesheet" type="text/css"/>
     <script language="javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script><script language="javascript" src="javascripts/jquery.hotkeys.js" type="text/javascript"></script><script language="javascript" src="javascripts/key_status.js" type="text/javascript"></script><script language="javascript" src="javascripts/util.js" type="text/javascript"></script><script language="javascript" src="javascripts/sprite.js" type="text/javascript"></script><script language="javascript" src="javascripts/sound.js" type="text/javascript"></script>
   </head>
@@ -878,6 +878,7 @@
 		  maxhp:100,
 		  hp:100,
 		  mp:40,
+		  contactDmg: 25,
 		  gothurt: 0,
 		  maxmp:40,
 		  type: 0,
@@ -905,7 +906,7 @@
 		    if(this.gothurt>0) {return;}
 			
 			this.hp-=dmg;
-			if (this.hp<1) {this.active=false;}
+			if (this.hp<1) {this.explode();}
 			//TODO:knockback?
 			playSound("Enemy_Hit");
 			this.gothurt=5;
@@ -918,7 +919,7 @@
         
           explode: function() {
             playSound("Enemy_Kill");
-            
+            alert("code = 9F15");
             this.active = false;
             // TODO: Add an explosion graphic
           },
@@ -1753,6 +1754,7 @@
           I.name="Evil Bunny";
 		  I.hp=10;
 		  I.maxhp=10;
+		  I.contactDmg=5;
 		  I.timelastmoved=0;
 		  I.speed=80;
 		  I.slowed=0;
@@ -1854,13 +1856,22 @@
 				I.sprite[0] = Sprite("enemy1");
 				I.sprite[1] = Sprite("enemy1");
 				I.hp=10;
+				I.contactDmg=5;
 				I.maxhp=10;
 			}else if(this.name=="Chaser"){
 				I.sprite[0] = Sprite("chaser");
 				I.sprite[1] = Sprite("chaser2");
-				I.hp=30;
+				I.hp=40;
+				I.contactDmg=10;
 				I.speed=200;
-				I.maxhp=30;
+				I.maxhp=40;
+			}else if(this.name=="Hunter"){
+				I.sprite[0] = Sprite("hunter1");
+				I.sprite[1] = Sprite("hunter2");
+				I.hp=80;
+				I.contactDmg=25;
+				I.speed=100;
+				I.maxhp=80;
 			}
 		  };
 		  
@@ -1886,7 +1897,7 @@
 				I.y += I.yVelocity/4;
 			
 				I.xVelocity = 3 * Math.sin(I.age * Math.PI / 64);
-			}else if(this.name=="Chaser"){
+			}else if((this.name=="Chaser") || (this.name=="Hunter")){
 				if(player.x>I.x) {I.move(1,0,maps[0]);}
 				if(player.x<I.x) {I.move(-1,0,maps[0]);}
 				if(player.y>I.y) {I.move(0,1,maps[0]);}
@@ -1900,7 +1911,7 @@
           I.explode = function() {
             playSound("Enemy_Kill");
 			blip = Math.random() *100;
-			if (this.name=="Chaser") {
+			if ((this.name=="Chaser") || (this.name=="Hunter")){
 				stuff.push(new thing(1,Math.round(I.x),Math.round(I.y)));
 			}else if (blip >70) {
 				stuff.push(new thing(5,Math.round(I.x),Math.round(I.y)));
@@ -1940,7 +1951,7 @@
 				enemies.push(chaser);
 				
 				chaser=new Enemy();
-				chaser.name="Chaser";
+				chaser.name="Hunter";
 				chaser.x=88;
 				chaser.y=16;
 				chaser.enemyInit();
@@ -1966,7 +1977,7 @@
 				if(usekey.check()) {textPause=false;}
 			return
 			};
-		    if(modekey.check()) {
+		    if(false) {
 				if (Mode==0) {
 					Mode=1;
 					camera.center(edcursor);
@@ -2521,7 +2532,7 @@
           });
         
           enemies.forEach(function(enemy) {
-			if(player.checkCollide(enemy)) {player.hurt(5);}
+			if(player.checkCollide(enemy)) {player.hurt(enemy.contactDmg);}
 			if(player.hitsword(enemy.x,enemy.y,32,32)) {
 			enemy.hurt(player.sword.dmg);
 			}
