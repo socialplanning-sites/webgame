@@ -92,6 +92,7 @@
 		var CHARANI_RATE= 200;
 		var SPAWN_X=22;
 		var SPAWN_Y=19;
+		var GRAVITY_RATE=20;
 		//var keychart = ["w","a","d","s","up","right","down","left","m","n","shift"];
 		var darkgrasssprite = Sprite("darkgrass"); //begin loading images.  Eventually I should put them all on one .png file
 		var grasssprite = Sprite("grass");
@@ -139,7 +140,7 @@
 		explosionsprite[2] =Sprite("explosion2");
 		explosionsprite[3] =Sprite("explosion3");
 		
-
+		var SideMode=false;
 		var editHistory=[];
 		Mode = 0;
 		TopView=true;
@@ -1087,6 +1088,7 @@
 		  sword: 0,
 		  timelastmoved: 0,
 		  lastani: 0,
+		  lastdroptime: 0,
 		  speed: 70,
 		  init: function () {  //load sprites
 		    this.sword=nosword;
@@ -1142,9 +1144,8 @@
 				canvas.fillText("Bombs:", 43, 64);
 				canvas.fillText(this.bombs, 105, 64);
 				
-				canvas.fillText(editHistory.length,105, 120);	
-				canvas.fillText(Mouse.mouseRightDown, 105, 140);
-				
+				canvas.fillText(SideMode,105, 120);	
+	
 				
 				canvas.fillStyle = "#5F9EA0";
 				canvas.fillRect(100, 40, this.mp, 16);
@@ -1300,7 +1301,6 @@
 		  update: function() {
             
             if(this.hp<1) {this.kill();}
-			
 			if(this.sword.active){
                  if(this.sword.going) {
 					this.sword.track+=this.sword.speed;
@@ -1321,7 +1321,19 @@
 						this.sword.active=false;
 					}
 
+	
+					
 			}
+			
+			if(SideMode){ //gravity
+				if((!maps[0].canStand(this.x,this.y+2)) && (!maps[0].canStand(this.x+1,this.y+2))){
+					if(milliseconds-this.lastdroptime>GRAVITY_RATE) {
+						player.y+=1;
+						this.lastdroptime=milliseconds;
+					}
+				}
+			}
+			
 			if((this.frozen) && (milliseconds-this.frozetime>FROZE_DUR)){ this.frozen=false; }
 			
 				
@@ -2146,7 +2158,7 @@
 			milliseconds = timestamp.getTime();
 			
 			if(testkey.check()) {
-				//pete.spawnMob();
+				SideMode=!SideMode;
 			}
 		    
 			if (milliseconds-lastani>LAVA_RATE) {
