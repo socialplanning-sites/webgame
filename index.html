@@ -1959,7 +1959,6 @@
 		
 	//------------MAIN LOOP-----------------------------------------
         function update() {
-        		Mode=0;
 			lasttime=milliseconds;
 			timestamp = new Date();
 			milliseconds = timestamp.getTime();
@@ -1978,7 +1977,7 @@
 				if(usekey.check()) {textPause=false;}
 			return
 			};
-		    if(modekey.check()) {
+		    if(false) {
 				if (Mode==0) {
 					Mode=1;
 					camera.center(edcursor);
