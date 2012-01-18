@@ -986,6 +986,7 @@
           x: 22,
           y: 19,
 		  dir: 2,
+		  selected: false,
 		  maxhp:100,
 		  spells: 0,
 		  hp:50,
@@ -1350,6 +1351,7 @@
 		  slow: false,
 		  mouse: true,
 		  lastx:0,
+		  selected: false,
 		  lasty:0,
 		  cornerd: false,
 		  size: 1, //TODO: add for loops to draw, placement to make larger brush size, center it?
@@ -1427,7 +1429,7 @@
 			  
 			  if(slowkey.check()) {
 				this.mode++;
-				if (this.mode>3) {this.mode=0;} //NUM EDIT MODES
+				if (this.mode>4) {this.mode=0;} //NUM EDIT MODES
 			  }
 			  
 			  if(cmousekey.check()) {
@@ -1881,7 +1883,7 @@
 			 }
 			  if(shiftkey.check()) { 
 			  if (Mode==0) {  camera.center(player); }
-			  if (Mode==1) {  camera.center(edcursor); }
+			  if (Mode==1) {  camera.center(player); }
 			  }
 
 			//camera controlls
@@ -1975,7 +1977,29 @@
 				if((!Mouse.mouseIsDown) && (Mouse.lFlag)){ //for single click
 					Mouse.lFlag=false;
 					//if((edcursor.mode==0)  || (edcursor.mode==2) ||(edcursor.mode==3) ) {addEdit(maps[0]);}
-					if(edcursor.mode==2){
+					if(edcursor.mode==4){
+						if (!edcursor.selected) {
+							if (Mouse.isOver(player,camera)) {player.selected=true; edcursor.selected=true;} //todo:this better.
+							if (Mouse.isOver(Wizard,camera)) {Wizard.selected=true; edcursor.selected=true;}
+							if (Mouse.isOver(Smedly,camera)) {Smedly.selected=true; edcursor.selected=true;}
+						}else{
+							if (player.selected) {
+								player.x=edcursor.x;
+								player.y=edcursor.y;
+								player.selected=false;
+							}else 	if (Wizard.selected) {
+								Wizard.x=edcursor.x;
+								Wizard.y=edcursor.y;
+								Wizard.selected=false;
+							}else 	if (Smedly.selected) {
+								Smedly.x=edcursor.x;
+								Smedly.y=edcursor.y;
+								Smedly.selected=false;
+							}
+							edcursor.selected=false;
+						}
+						
+					}else if(edcursor.mode==2){
 						if(edcursor.cornered){
 							addEdit(maps[0]);
 							twidth=edcursor.x-edcursor.lastx+1;
@@ -2345,6 +2369,13 @@
 						canvas.fillText("Select Top-Left Corner", 16, 64);
 					}else{
 						canvas.fillText("Select Bottom-Right Corner", 16, 64);
+					}
+				}else if(edcursor.mode==4) {
+					canvas.fillText("Move Entity Mode", 16, 42);
+					if(!edcursor.selected) {	
+						canvas.fillText("Select entity to move.", 16, 64);
+					}else{
+						canvas.fillText("Select desired position.", 16, 64);
 					}
 				}
 		}
