@@ -878,6 +878,7 @@
 		  maxhp:100,
 		  hp:100,
 		  mp:40,
+		  contactDmg: 25,
 		  gothurt: 0,
 		  maxmp:40,
 		  type: 0,
@@ -1753,6 +1754,7 @@
           I.name="Evil Bunny";
 		  I.hp=10;
 		  I.maxhp=10;
+		  I.contactDmg=5;
 		  I.timelastmoved=0;
 		  I.speed=80;
 		  I.slowed=0;
@@ -1854,17 +1856,20 @@
 				I.sprite[0] = Sprite("enemy1");
 				I.sprite[1] = Sprite("enemy1");
 				I.hp=10;
+				I.contactDmg=5;
 				I.maxhp=10;
 			}else if(this.name=="Chaser"){
 				I.sprite[0] = Sprite("chaser");
 				I.sprite[1] = Sprite("chaser2");
 				I.hp=40;
+				I.contactDmg=10;
 				I.speed=200;
 				I.maxhp=40;
 			}else if(this.name=="Hunter"){
 				I.sprite[0] = Sprite("hunter1");
 				I.sprite[1] = Sprite("hunter2");
 				I.hp=80;
+				I.contactDmg=25;
 				I.speed=100;
 				I.maxhp=80;
 			}
@@ -2524,7 +2529,7 @@
           });
         
           enemies.forEach(function(enemy) {
-			if(player.checkCollide(enemy)) {player.hurt(5);}
+			if(player.checkCollide(enemy)) {player.hurt(enemy.contactDmg);}
 			if(player.hitsword(enemy.x,enemy.y,32,32)) {
 			enemy.hurt(player.sword.dmg);
 			}
