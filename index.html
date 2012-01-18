@@ -2023,11 +2023,13 @@
                                 obj.cracked = maps[0].stringifyCracked();
                                 obj.stuff = stringifyStuff();
                                 obj = JSON.stringify(obj);
-                                $.post("http://server.webgame.zebra-associates.org/"+url, {'map': obj}, function(){ alert('okay, should be ready to go.');});
+                                var form = $("<form />").attr("method", "POST").attr("action", "http://server.webgame.zebra-associates.org/"+url);
+                                $("<input />").attr("type", "hidden").attr("name", "map").attr("value", obj).appendTo(form);
+                                form.submit();
 			  }
 			  if(serverloadkey.check()) {
                                 var url = prompt("What map do you want to load?  (letters/numbers only please.)");
-                                $.get("http://server.webgame.zebra-associates.org/"+url, function(data) {
+                                var callback = function(data) {
                                   var obj = JSON.parse(data);
                                   var tiles = obj.tiles;
                                   var cracked = obj.cracked;
@@ -2035,7 +2037,8 @@
                                   maps[0].buildMapFromLoadedTiles('', tiles);
                                   maps[0].buildMapFromLoadedCracks('', cracked);
                                   buildMapFromLoadedStuff('', stuff);
-                                });
+                                }
+                                $.getJSON("http://server.webgame.zebra-associates.org/"+url+"?callback=?", callback);
                            }
 
 			  if(savekey.check()) {
