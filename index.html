@@ -906,7 +906,7 @@
 		    if(this.gothurt>0) {return;}
 			
 			this.hp-=dmg;
-			if (this.hp<1) {this.active=false;}
+			if (this.hp<1) {this.explode();}
 			//TODO:knockback?
 			playSound("Enemy_Hit");
 			this.gothurt=5;
