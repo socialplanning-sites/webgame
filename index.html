@@ -1858,9 +1858,15 @@
 			}else if(this.name=="Chaser"){
 				I.sprite[0] = Sprite("chaser");
 				I.sprite[1] = Sprite("chaser2");
-				I.hp=30;
+				I.hp=40;
 				I.speed=200;
-				I.maxhp=30;
+				I.maxhp=40;
+			}else if(this.name=="Hunter"){
+				I.sprite[0] = Sprite("hunter1");
+				I.sprite[1] = Sprite("hunter2");
+				I.hp=80;
+				I.speed=100;
+				I.maxhp=80;
 			}
 		  };
 		  
@@ -1886,7 +1892,7 @@
 				I.y += I.yVelocity/4;
 			
 				I.xVelocity = 3 * Math.sin(I.age * Math.PI / 64);
-			}else if(this.name=="Chaser"){
+			}else if((this.name=="Chaser") || (this.name=="Hunter")){
 				if(player.x>I.x) {I.move(1,0,maps[0]);}
 				if(player.x<I.x) {I.move(-1,0,maps[0]);}
 				if(player.y>I.y) {I.move(0,1,maps[0]);}
@@ -1900,7 +1906,7 @@
           I.explode = function() {
             playSound("Enemy_Kill");
 			blip = Math.random() *100;
-			if (this.name=="Chaser") {
+			if ((this.name=="Chaser") || (this.name=="Hunter")){
 				stuff.push(new thing(1,Math.round(I.x),Math.round(I.y)));
 			}else if (blip >70) {
 				stuff.push(new thing(5,Math.round(I.x),Math.round(I.y)));
@@ -1940,7 +1946,7 @@
 				enemies.push(chaser);
 				
 				chaser=new Enemy();
-				chaser.name="Chaser";
+				chaser.name="Hunter";
 				chaser.x=88;
 				chaser.y=16;
 				chaser.enemyInit();
