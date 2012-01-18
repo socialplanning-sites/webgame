@@ -431,6 +431,7 @@
 		var mgcyclekey=new akey("r");
 		var usekey=new akey("space");	
 		var undokey=new akey("z");		
+		var testkey=new akey("y");	
 		
 		var stuff=[];
 		
@@ -1752,6 +1753,14 @@
           I.name="Evil Bunny";
 		  I.hp=10;
 		  I.maxhp=10;
+		  I.timelastmoved=0;
+		  I.speed=80;
+		  I.slowed=0;
+		  I.tiletype=0;
+		  I.flippers=true;
+		  I.key=[];
+		  
+		  I.def=1;
 		  I.gothurt=0;
           I.active = true;
           I.age = Math.floor(Math.random() * 128);
@@ -1765,6 +1774,40 @@
         
           I.width = 32;
           I.height = 32;
+		  I.move=function (px,py,merp) {
+				if(this.frozen) {return;}
+				var slowed=0;
+				if(this.tiletype==3) {slowed=30;}
+				if(milliseconds-this.timelastmoved<this.speed+slowed){ return; }
+				if(px<0){
+					if ((this.x>0) && (this.y<MAP_HEIGHT-1) && (merp.canWalk(this,[this.x-1],[this.y])) && (merp.canWalk(this,[this.x-1],[this.y+1]))) {
+						this.x+=px;
+						this.tiletype=merp.tiles[this.x][this.y].data;
+						this.timelastmoved=milliseconds;
+					}
+				}else if(px>0) {
+					if ((this.y<MAP_HEIGHT-1) && (this.x<MAP_WIDTH-2) &&(merp.canWalk(this,[this.x+2],[this.y])) && (merp.canWalk(this,[this.x+2],[this.y+1]))) {
+						this.x+=px;
+						this.tiletype=merp.tiles[this.x][this.y].data;
+						this.timelastmoved=milliseconds;
+					}
+			    }else if(py<0) {
+					if ((this.y>0) && (this.x<MAP_WIDTH-1) && (merp.canWalk(this,[this.x],[this.y-1])) && (merp.canWalk(this,[this.x+1],[this.y-1]))) {
+						this.y+=py;
+							this.tiletype=merp.tiles[this.x][this.y].data;
+							this.timelastmoved=milliseconds;
+						}
+				}else if(py>0) {
+					if ((this.y<MAP_HEIGHT-2) && (this.x<MAP_WIDTH-1) && (merp.canWalk(this,[this.x],[this.y+2])) && (merp.canWalk(this,[this.x+1],[this.y+2]))) {
+						this.y+=py;
+						this.tiletype=merp.tiles[this.x][this.y].data;
+						this.timelastmoved=milliseconds;
+						}
+				}
+
+				//this.animate();
+				
+			};
 		  
 		  I.hurt= function(dmg) {
 		    if(I.gothurt>0) {return;}
@@ -1788,7 +1831,23 @@
 			return false;
 		  };	
 		
-          I.sprite = Sprite("enemy1");
+		  I.enemyInit = function(){
+		    I.key[0]=true;
+			I.key[1]=true;
+			I.key[2]=true;
+			if(this.name=="Evil Bunny"){
+				I.sprite = Sprite("enemy1");
+				I.hp=10;
+				I.maxhp=10;
+			}else if(this.name=="Chaser"){
+				I.sprite = Sprite("chaser");
+				I.hp=30;
+				I.speed=200;
+				I.maxhp=30;
+			}
+		  };
+		  
+		  I.enemyInit();
         
           I.draw = function(cam) {
 			if (I.gothurt>0) {
@@ -1805,11 +1864,17 @@
           };
         
           I.update = function() {
-            I.x += I.xVelocity/4;
-            I.y += I.yVelocity/4;
-        
-            I.xVelocity = 3 * Math.sin(I.age * Math.PI / 64);
-        
+			if(this.name=="Evil Bunny"){
+				I.x += I.xVelocity/4;
+				I.y += I.yVelocity/4;
+			
+				I.xVelocity = 3 * Math.sin(I.age * Math.PI / 64);
+			}else if(this.name=="Chaser"){
+				if(player.x>I.x) {I.move(1,0,maps[0]);}
+				if(player.x<I.x) {I.move(-1,0,maps[0]);}
+				if(player.y>I.y) {I.move(0,1,maps[0]);}
+				if(player.y<I.y) {I.move(0,-1,maps[0]);}
+			}
             I.age++;
         
             I.active = I.active && I.inBounds();
@@ -1818,7 +1883,7 @@
           I.explode = function() {
             playSound("Enemy_Kill");
 			blip = Math.random() *100;
-			if (blip >95) {
+			if (this.name=="Chaser") {
 				stuff.push(new thing(1,Math.round(I.x),Math.round(I.y)));
 			}else if (blip >70) {
 				stuff.push(new thing(5,Math.round(I.x),Math.round(I.y)));
@@ -1850,7 +1915,19 @@
 
 		player.init();
 		//addEdit(maps[0]);
-
+				var chaser=new Enemy();
+				chaser.name="Chaser";
+				chaser.x=30;
+				chaser.y=20;
+				chaser.enemyInit();
+				enemies.push(chaser);
+				
+				chaser=new Enemy();
+				chaser.name="Chaser";
+				chaser.x=88;
+				chaser.y=16;
+				chaser.enemyInit();
+				enemies.push(chaser);
 		
 	//------------MAIN LOOP-----------------------------------------
         function update() {
@@ -1858,6 +1935,9 @@
 			timestamp = new Date();
 			milliseconds = timestamp.getTime();
 			
+			if(testkey.check()) {
+
+			}
 		    
 			if (milliseconds-lastani>LAVA_RATE) {
 				tileani++;
