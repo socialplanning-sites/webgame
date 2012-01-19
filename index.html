@@ -1062,6 +1062,8 @@
           x: 22,
           y: 19,
           jumping: false,
+		  doublejumping: false,
+		  doublejumpboots: true,
 		  dir: 2,
 		  selected: false,
 		  maxhp:100,
@@ -1332,13 +1334,14 @@
 			
 			if( SideMode ) { //gravity
 				if( milliseconds-this.lastdroptime>GRAVITY_RATE ) {
-                                    if( this.jumping ) {
+                                    if(( this.jumping ) || (this.doublejumping)) {
   		  		      if( (maps[0].canWalk(this, [this.x], [this.y-1])) && 
                                           (maps[0].canWalk(this, [this.x+1], [this.y-1])) ) {
 
                                               player.y-=1;
                                       }
                                       if( milliseconds-this.jumping>JUMP_DIR ) this.jumping = null;
+									  if((this.doublejumping)  && (milliseconds-this.doublejumping>JUMP_DIR )) this.doublejumping = null;
                                     } else {
   		  		      if( (!maps[0].canStand(this.x,this.y+2)) && 
                                           (!maps[0].canStand(this.x+1,this.y+2)) ) {
@@ -1429,12 +1432,14 @@
 			    if ((this.y>0) && (this.x<MAP_WIDTH-1) && (merp.canWalk(this,[this.x],[this.y-1])) && (merp.canWalk(this,[this.x+1],[this.y-1]))) {
                               if( SideMode ) {
 				if( (maps[0].canStand(this.x,this.y+2)) || (maps[0].canStand(this.x+1,this.y+2)) && (!this.jumping) ) {
-                                 this.jumping = milliseconds;
-                                }
-                              } else {
-                                 this.move(0,-1,merp);
-                              }
-                          }
+						 this.jumping = milliseconds;
+						}
+					  } else {
+						 this.move(0,-1,merp);
+					  }
+				  }else if ((this.jumping) &&(!this.doubejumping) && (this.doublejumpboots)){
+					this.doublejumping=milliseconds;
+				}
 			  }if(keydown.a) {
 			    this.dir=3;
 			    if ((this.x>0) && (this.y<MAP_HEIGHT-1) && (merp.canWalk(this,[this.x-1],[this.y])) && (merp.canWalk(this,[this.x-1],[this.y+1]))) {this.move(-1,0,merp);}
