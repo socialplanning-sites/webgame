@@ -1431,18 +1431,23 @@
 		  
 			 if(keydown.w) {
 			    this.dir=0;
-			    if ((this.y>0) && (this.x<MAP_WIDTH-1) && (merp.canWalk(this,[this.x],[this.y-1])) && (merp.canWalk(this,[this.x+1],[this.y-1]))) {
+			    if ((this.y>0) && (this.x<MAP_WIDTH-1)
+                                 && (merp.canWalk(this,[this.x],[this.y-1]))
+                                 && (merp.canWalk(this,[this.x+1],[this.y-1])) ) {
                               if( SideMode ) {
-				if( (maps[0].canStand(this.x,this.y+2)) || (maps[0].canStand(this.x+1,this.y+2)) && (!this.jumping) ) {
-						 this.jumping = milliseconds;
+				if( (maps[0].canStand(this.x,this.y+2)) 
+                                   || (maps[0].canStand(this.x+1,this.y+2)) && (!this.jumping) ) {
+					this.jumping = milliseconds;
 
 				} else if ((this.jumping) &&(!this.doubejumping) && (this.doublejumpboots)) {
-					this.doublejumping=milliseconds;
+				  this.doublejumping=milliseconds;
+			        }
+                              } else {
+				 this.move(0,-1,merp);
 			      }
-                            } else {
-						 this.move(0,-1,merp);
-			      }
-			  }if(keydown.a) {
+			    }
+                         } 
+                         if(keydown.a) {
 			    this.dir=3;
 			    if ((this.x>0) && (this.y<MAP_HEIGHT-1) && (merp.canWalk(this,[this.x-1],[this.y])) && (merp.canWalk(this,[this.x-1],[this.y+1]))) {this.move(-1,0,merp);}
 			  }if(keydown.d) {
