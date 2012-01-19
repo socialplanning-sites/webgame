@@ -1646,7 +1646,7 @@ function Map(I) { //map object
             I.tiles[tileData[0]][tileData[1]].fluidVacuum = true;
           } else {
 
-            var pushDown = function(data0, data1) {
+            var pushDown = function(data0, data1, n) {
               var tile = I.tiles[data0];
               if( !tile ) return;
               tile = tile[data1+1];
@@ -1658,7 +1658,8 @@ function Map(I) { //map object
                 data = data[y].data;
                 if( data == 18 || data == 19 || data == 20 || data == 2 || data == 5 || data == 7 || data == 8 ) return;
                 if( data == 3 ) {
-                  return pushDown(x+dir, data1);
+if( n > 5 ) return;
+                  return pushDown(x+dir, data1, n+1);
                 }
                 I.setTile(x, data1, I.tiles[x+dir][y].data);
                 I.tiles[x][data1].fluidVacuum = true;
@@ -1666,7 +1667,7 @@ function Map(I) { //map object
               }
             };
 
-            pushDown(tileData[0], tileData[1]);
+            pushDown(tileData[0], tileData[1], 0);
            
           }
         }
