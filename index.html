@@ -156,6 +156,7 @@
 		var NUM_THINGS=21;
 		var FROZE_DUR=2000;
                 var JUMP_DIR=100;
+                VAR JUMP_BEFORE_DOUBLEJUMP_DIR=25;
 
         var canvasElement = $("<canvas width='" + CANVAS_WIDTH + 
           "' height='" + CANVAS_HEIGHT + "'></canvas");
@@ -1439,7 +1440,7 @@
                                    || (maps[0].canStand(this.x+1,this.y+2)) && (!this.jumping) ) {
 					this.jumping = milliseconds;
 
-				} else if ((this.jumping) &&(!this.doublejumping) && (this.doublejumpboots)) {
+				} else if ((this.jumping) &&(!this.doublejumping) && (this.doublejumpboots) && (milliseconds-this.jumping>JUMP_BEFORE_DOUBLEJUMP_DUR) ) {
 				  this.doublejumping=milliseconds;
 			        }
                               } else {
