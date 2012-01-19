@@ -478,7 +478,7 @@ function saveSpawners(name){
 };
 
 function stringifyJunk(name){
-    var tempstring = SPAWN_X + "," + SPAWN_Y + "," + Smedly.x + "," + Smedly.y + "," + Wizard.x + "," + Wizard.y;
+    var tempstring = SPAWN_X + "," + SPAWN_Y + "," + Smedly.x + "," + Smedly.y + "," + Wizard.x + "," + Wizard.y + "," + SideMode;
     return tempstring;
 };
 			
@@ -496,6 +496,7 @@ function loadJunk(name){
     Smedly.y=parseInt(tempstring[3]);
     Wizard.x=parseInt(tempstring[4]);
     Wizard.y=parseInt(tempstring[5]);
+	SideMode = (tempstring[6] == "true")
 };
 			
 function buildMapFromJunk(tempstring){
@@ -506,6 +507,7 @@ function buildMapFromJunk(tempstring){
     Smedly.y=parseInt(tempstring[3]);
     Wizard.x=parseInt(tempstring[4]);
     Wizard.y=parseInt(tempstring[5]);
+	SideMode = (tempstring[6] == "true")
 };
 
 
@@ -2912,3 +2914,4 @@ player.draw = function(cam) {
 
   </body>
 </html>
+
