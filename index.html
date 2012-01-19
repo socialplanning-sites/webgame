@@ -1435,13 +1435,13 @@
                               if( SideMode ) {
 				if( (maps[0].canStand(this.x,this.y+2)) || (maps[0].canStand(this.x+1,this.y+2)) && (!this.jumping) ) {
 						 this.jumping = milliseconds;
-						}
-					  } else {
-						 this.move(0,-1,merp);
-					  }
-				  }else if ((this.jumping) &&(!this.doublejumping) && (this.doublejumpboots)){
+
+				} else if ((this.jumping) &&(!this.doubejumping) && (this.doublejumpboots)) {
 					this.doublejumping=milliseconds;
-				}
+			      }
+                            } else {
+						 this.move(0,-1,merp);
+			      }
 			  }if(keydown.a) {
 			    this.dir=3;
 			    if ((this.x>0) && (this.y<MAP_HEIGHT-1) && (merp.canWalk(this,[this.x-1],[this.y])) && (merp.canWalk(this,[this.x-1],[this.y+1]))) {this.move(-1,0,merp);}
