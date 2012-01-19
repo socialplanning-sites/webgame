@@ -1152,6 +1152,8 @@
 				canvas.fillText(this.bombs, 105, 64);
 				
 				canvas.fillText(SideMode,105, 120);	
+				canvas.fillText("DbJump?",60, 140);	
+				canvas.fillText(player.doublejumping,145, 140);	
 	
 				
 				canvas.fillStyle = "#5F9EA0";
@@ -1340,7 +1342,7 @@
 
                                               player.y-=1;
                                       }
-                                      if( milliseconds-this.jumping>JUMP_DIR ) this.jumping = null;
+                                      if( milliseconds-this.jumping>JUMP_DIR ) this.jumping = null;//end !doublejumping.
 									  if((this.doublejumping)  && (milliseconds-this.doublejumping>JUMP_DIR )) this.doublejumping = null;
                                     } else {
   		  		      if( (!maps[0].canStand(this.x,this.y+2)) && 
@@ -1437,7 +1439,7 @@
 					  } else {
 						 this.move(0,-1,merp);
 					  }
-				  }else if ((this.jumping) &&(!this.doubejumping) && (this.doublejumpboots)){
+				  }else if ((this.jumping) &&(!this.doublejumping) && (this.doublejumpboots)){
 					this.doublejumping=milliseconds;
 				}
 			  }if(keydown.a) {
