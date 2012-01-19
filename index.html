@@ -1639,17 +1639,42 @@ function Map(I) { //map object
         I.fluidTiles = fluidTiles;
         for( var i=0; i<fluidTiles.length; ++i ) {
           var tileData = fluidTiles[i];
+
           if( !I.canStand(tileData[0], tileData[1]+1) ) {
-            I.setTile(tileData[0], tileData[1], 0);
+            I.setTile(tileData[0], tileData[1], I.tiles[tileData[0]][tileData[1]+1].data);
             I.setTile(tileData[0], tileData[1]+1, tileData[2]);
             I.tiles[tileData[0]][tileData[1]].fluidVacuum = true;
+          } else {
+
+            var pushDown = function(data0, data1) {
+              var tile = I.tiles[data0];
+              if( !tile ) return;
+              tile = tile[data1+1];
+              if( tile && tile.data == 3 ) {
+                var x = data0, y = data1+1;
+                var dir = parseInt(Math.random()*100) % 2 ? 1 : -1;
+                var data = I.tiles[x+dir];
+                if( !data ) return;
+                data = data[y].data;
+                if( data == 18 || data == 19 || data == 20 || data == 2 || data == 5 || data == 7 || data == 8 ) return;
+                if( data == 3 ) {
+                  return pushDown(x+dir, data1);
+                }
+                I.setTile(x, data1, I.tiles[x+dir][y].data);
+                I.tiles[x][data1].fluidVacuum = true;
+                I.setTile(x+dir, y, 3);
+              }
+            };
+
+            pushDown(tileData[0], tileData[1]);
+           
           }
         }
         for( var i=0; i<vacuumTiles.length; ++i ) {
           var x = vacuumTiles[i][0]; var y = vacuumTiles[i][1];
           var dir = parseInt(Math.random()*100) % 2 ? 1 : -1;
           if( I.tiles[x+dir] && I.tiles[x+dir][y].data == 3 ) {
-            I.setTile(x+dir, y, 0);
+            I.setTile(x+dir, y, I.tiles[x][y].data);
             I.setTile(x, y, 3);
             I.tiles[x][y].fluidVacuum = false;
             I.tiles[x+dir][y].fluidVacuum = true;
