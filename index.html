@@ -909,6 +909,7 @@ function makeNewTile() { //the Map is made of a 2D array of tiles.
 	    if(this.cracked==1){
 		crackedsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 	    }
+            
 	}
     };
     
@@ -1625,60 +1626,93 @@ function Map(I) { //map object
         this.updateFluids();
       }
     };
+
+    I.pullFluids = function(x, y, x1, y1) {
+      var x2, y2;
+    
+      x2 = x; y2 = y - 1;
+      if( x2 != x1 || y2 != y1 ) {
+        if( I.tiles[x2] && I.tiles[x2][y2] && I.tiles[x2][y2].data ) {
+          if( I.tiles[x2][y2].data == 3 ) {
+            I.tiles[x2][y2].fluidPull = ["y", 1];
+          }
+        }
+      }
+      x2 = x; y2 = y + 1;
+      if( x2 != x1 || y2 != y1 ) {
+        if( I.tiles[x2] && I.tiles[x2][y2] && I.tiles[x2][y2].data ) {
+          if( I.tiles[x2][y2].data == 3 ) {
+            I.tiles[x2][y2].fluidPull = ["y", -1];
+          }
+        }
+      }
+      x2 = x - 1; y2 = y;
+      if( x2 != x1 || y2 != y1 ) {
+        if( I.tiles[x2] && I.tiles[x2][y2] && I.tiles[x2][y2].data ) {
+          if( I.tiles[x2][y2].data == 3 ) {
+            I.tiles[x2][y2].fluidPull = ["x", 1];
+          }
+        }        
+      }
+      x2 = x + 1; y2 = y;
+      if( x2 != x1 || y2 != y1 ) {
+        if( I.tiles[x2] && I.tiles[x2][y2] && I.tiles[x2][y2].data ) {
+          if( I.tiles[x2][y2].data == 3 ) {
+            I.tiles[x2][y2].nextFluidPull = ["x", -1];
+          }
+        }        
+      }
+    };
+
+    I.moveFluid = function(x, y, direction, valence) {
+      var x1, y1;
+      if( direction == "x" ) {
+        x1 = x + valence; y1 = y;
+      } else {
+        x1 = x; y1 = y + valence;
+      }
+console.log(direction, valence);
+
+      if( !I.tiles[x1] || !I.tiles[x1][y1] || !I.tiles[x1][y1].data ) {
+        console.log(x1, y1);
+        return;
+      }
+console.log("pulling, moving", x, y, x1, y1);
+      I.pullFluids(x, y, x1, y1);
+      I.setTile(x, y, I.tiles[x1][y1].data);
+      I.setTile(x1, y1, "3");
+    };
     
     I.updateFluids = function() {
-        var fluidTiles = [];
-        var vacuumTiles = [];
+        var fluidTiles =[];
         for( var i=0; i<MAP_WIDTH; ++i ) {
           for( var j=0; j<MAP_HEIGHT; ++j ) {
-            if( I.tiles[i][j].fluidVacuum ) vacuumTiles.push([i, j]);
-            if( I.tiles[i][j].data != 3 ) continue;
+            if( parseInt(I.tiles[i][j].data) != 3 ) continue;
             fluidTiles.push([i,j, I.tiles[i][j].data]);
+            I.tiles[i][j].fluidPull = I.tiles[i][j].nextFluidPull;
+            I.tiles[i][j].nextFluidPull = null;
           }
         }
         I.fluidTiles = fluidTiles;
+
+        for( var i=0; i<fluidTiles.length; ++i ) {
+          var tileData = fluidTiles[i];
+          var pullForce = I.tiles[tileData[0]][tileData[1]].fluidPull;
+          if( !pullForce ) {
+            continue;
+          }
+ console.log(pullForce);
+          I.tiles[tileData[0]][tileData[1]].fluidPull = null;
+          I.moveFluid(tileData[0], tileData[1], pullForce[0], pullForce[1]);
+        }
+
         for( var i=0; i<fluidTiles.length; ++i ) {
           var tileData = fluidTiles[i];
 
           if( !I.canStand(tileData[0], tileData[1]+1) ) {
-            I.setTile(tileData[0], tileData[1], I.tiles[tileData[0]][tileData[1]+1].data);
-            I.setTile(tileData[0], tileData[1]+1, tileData[2]);
-            I.tiles[tileData[0]][tileData[1]].fluidVacuum = true;
+            I.moveFluid(tileData[0], tileData[1], "y", 1);
           } else {
-
-            var pushDown = function(data0, data1, n) {
-              var tile = I.tiles[data0];
-              if( !tile ) return;
-              tile = tile[data1+1];
-              if( tile && tile.data == 3 ) {
-                var x = data0, y = data1+1;
-                var dir = parseInt(Math.random()*100) % 2 ? 1 : -1;
-                var data = I.tiles[x+dir];
-                if( !data ) return;
-                data = data[y].data;
-                if( data == 18 || data == 19 || data == 20 || data == 2 || data == 5 || data == 7 || data == 8 ) return;
-                if( data == 3 ) {
-if( n > 5 ) return;
-                  return pushDown(x+dir, data1, n+1);
-                }
-                I.setTile(x, data1, I.tiles[x+dir][y].data);
-                I.tiles[x][data1].fluidVacuum = true;
-                I.setTile(x+dir, y, 3);
-              }
-            };
-
-            pushDown(tileData[0], tileData[1], 0);
-           
-          }
-        }
-        for( var i=0; i<vacuumTiles.length; ++i ) {
-          var x = vacuumTiles[i][0]; var y = vacuumTiles[i][1];
-          var dir = parseInt(Math.random()*100) % 2 ? 1 : -1;
-          if( I.tiles[x+dir] && I.tiles[x+dir][y].data == 3 ) {
-            I.setTile(x+dir, y, I.tiles[x][y].data);
-            I.setTile(x, y, 3);
-            I.tiles[x][y].fluidVacuum = false;
-            I.tiles[x+dir][y].fluidVacuum = true;
+            // foo           
           }
         }
     };
@@ -1811,7 +1845,7 @@ if( n > 5 ) return;
     
     
     I.canStand = function (x,y) { //sidemode only
-        if( !I.tiles[x][y] ) {
+        if( !I.tiles[x] || !I.tiles[x][y] ) {
           return true;
         }
 	if ((I.tiles[x][y].data ==7)  || (I.tiles[x][y].data ==7 ) || (I.tiles[x][y].data ==5) || (I.tiles[x][y].data ==3)|| (I.tiles[x][y].data ==8)) {
