@@ -1633,32 +1633,117 @@ function Map(I) { //map object
       x2 = x; y2 = y - 1;
       if( x2 != x1 || y2 != y1 ) {
         if( I.tiles[x2] && I.tiles[x2][y2] && I.tiles[x2][y2].data ) {
-          if( I.tiles[x2][y2].data == 3 ) {
-            I.tiles[x2][y2].fluidPull = ["y", 1];
+          if( parseInt(I.tiles[x2][y2].data) == 3 ) {
+            I.tiles[x2][y2].nextFluidPull = ["y", 1];
           }
         }
       }
       x2 = x; y2 = y + 1;
       if( x2 != x1 || y2 != y1 ) {
         if( I.tiles[x2] && I.tiles[x2][y2] && I.tiles[x2][y2].data ) {
-          if( I.tiles[x2][y2].data == 3 ) {
-            I.tiles[x2][y2].fluidPull = ["y", -1];
+          if( parseInt(I.tiles[x2][y2].data) == 3 ) {
+            I.tiles[x2][y2].nextFluidPull = ["y", -1];
           }
         }
       }
       x2 = x - 1; y2 = y;
       if( x2 != x1 || y2 != y1 ) {
         if( I.tiles[x2] && I.tiles[x2][y2] && I.tiles[x2][y2].data ) {
-          if( I.tiles[x2][y2].data == 3 ) {
-            I.tiles[x2][y2].fluidPull = ["x", 1];
+          if( parseInt(I.tiles[x2][y2].data) == 3 ) {
+            I.tiles[x2][y2].nextFluidPull = ["x", 1];
           }
         }        
       }
       x2 = x + 1; y2 = y;
       if( x2 != x1 || y2 != y1 ) {
         if( I.tiles[x2] && I.tiles[x2][y2] && I.tiles[x2][y2].data ) {
-          if( I.tiles[x2][y2].data == 3 ) {
+          if( parseInt(I.tiles[x2][y2].data) == 3 ) {
             I.tiles[x2][y2].nextFluidPull = ["x", -1];
+          }
+        }        
+      }
+    };
+
+    I.pushFluid = function(x, y, direction, valence) {
+      var x1, y1;
+      if( direction == "x" ) {
+        x1 = x + valence; y1 = y;
+      } else {
+        x1 = x; y1 = y + valence;
+      }
+    
+      var x2, y2;
+
+      x2 = x; y2 = y - 1;
+      if( x2 != x1 || y2 != y1 ) {
+        if( I.tiles[x2] && I.tiles[x2][y2] && I.tiles[x2][y2].data ) {
+          if( parseInt(I.tiles[x2][y2].data) == 9 ) {
+            I.moveFluid(x, y, "y", -1);
+            return;
+          }
+        }
+      }
+      x2 = x; y2 = y + 1;
+      if( x2 != x1 || y2 != y1 ) {
+        if( I.tiles[x2] && I.tiles[x2][y2] && I.tiles[x2][y2].data ) {
+          if( parseInt(I.tiles[x2][y2].data) == 9 ) {
+            I.moveFluid(x, y, "y", 1);
+            return;
+          }
+        }
+      }
+      x2 = x - 1; y2 = y;
+      if( x2 != x1 || y2 != y1 ) {
+        if( I.tiles[x2] && I.tiles[x2][y2] && I.tiles[x2][y2].data ) {
+          if( parseInt(I.tiles[x2][y2].data) == 9 ) {
+            I.moveFluid(x, y, "x", -1);
+            return;
+          }
+        }        
+      }
+      x2 = x + 1; y2 = y;
+      if( x2 != x1 || y2 != y1 ) {
+        if( I.tiles[x2] && I.tiles[x2][y2] && I.tiles[x2][y2].data ) {
+          if( parseInt(I.tiles[x2][y2].data) == 9 ) {
+            I.moveFluid(x, y, "x", 1);
+            return;
+          }
+        }        
+      }
+
+      x2 = x; y2 = y - 1;
+      if( x2 != x1 || y2 != y1 ) {
+        if( I.tiles[x2] && I.tiles[x2][y2] && I.tiles[x2][y2].data ) {
+          if( parseInt(I.tiles[x2][y2].data) == 3 ) {
+            I.tiles[x2][y2].nextFluidPush = ["y", 1];
+            return;
+          }
+        }
+      }
+      x2 = x; y2 = y + 1;
+      if( x2 != x1 || y2 != y1 ) {
+        if( I.tiles[x2] && I.tiles[x2][y2] && I.tiles[x2][y2].data ) {
+          if( parseInt(I.tiles[x2][y2].data) == 3 ) {
+            I.tiles[x2][y2].nextFluidPush = ["y", -1];
+            return;
+          }
+        }
+      }
+      x2 = x - 1; y2 = y;
+      if( x2 != x1 || y2 != y1 ) {
+        if( I.tiles[x2] && I.tiles[x2][y2] && I.tiles[x2][y2].data ) {
+          if( parseInt(I.tiles[x2][y2].data) == 3 ) {
+            I.tiles[x2][y2].nextFluidPush = ["x", 1];
+            return;
+          }
+        }        
+      }
+      x2 = x + 1; y2 = y;
+      if( x2 != x1 || y2 != y1 ) {
+        if( I.tiles[x2] && I.tiles[x2][y2] && I.tiles[x2][y2].data ) {
+          if( parseInt(I.tiles[x2][y2].data) == 3 ) {
+            I.tiles[x2][y2].nextFluidPush = ["x", -1];
+            return;
           }
         }        
       }
@@ -1671,13 +1756,10 @@ function Map(I) { //map object
       } else {
         x1 = x; y1 = y + valence;
       }
-console.log(direction, valence);
 
       if( !I.tiles[x1] || !I.tiles[x1][y1] || !I.tiles[x1][y1].data ) {
-        console.log(x1, y1);
         return;
       }
-console.log("pulling, moving", x, y, x1, y1);
       I.pullFluids(x, y, x1, y1);
       I.setTile(x, y, I.tiles[x1][y1].data);
       I.setTile(x1, y1, "3");
@@ -1689,8 +1771,14 @@ console.log("pulling, moving", x, y, x1, y1);
           for( var j=0; j<MAP_HEIGHT; ++j ) {
             if( parseInt(I.tiles[i][j].data) != 3 ) continue;
             fluidTiles.push([i,j, I.tiles[i][j].data]);
+
+            I.tiles[i][j].processedFluid = null;
+
             I.tiles[i][j].fluidPull = I.tiles[i][j].nextFluidPull;
             I.tiles[i][j].nextFluidPull = null;
+
+            I.tiles[i][j].fluidPush = I.tiles[i][j].nextFluidPush;
+            I.tiles[i][j].nextFluidPush = null;
           }
         }
         I.fluidTiles = fluidTiles;
@@ -1701,18 +1789,38 @@ console.log("pulling, moving", x, y, x1, y1);
           if( !pullForce ) {
             continue;
           }
- console.log(pullForce);
           I.tiles[tileData[0]][tileData[1]].fluidPull = null;
+          I.tiles[tileData[0]][tileData[1]].processedFluid = true;
+
           I.moveFluid(tileData[0], tileData[1], pullForce[0], pullForce[1]);
         }
 
         for( var i=0; i<fluidTiles.length; ++i ) {
           var tileData = fluidTiles[i];
+          var pushForce = I.tiles[tileData[0]][tileData[1]].fluidPush;
+          if( !pushForce ) {
+            continue;
+          }
+          I.tiles[tileData[0]][tileData[1]].fluidPush = null;
+          I.tiles[tileData[0]][tileData[1]].processedFluid = true;
+
+          I.pushFluid(tileData[0], tileData[1], pushForce[0], pushForce[1]);
+        }
+
+        for( var i=0; i<fluidTiles.length; ++i ) {
+          var tileData = fluidTiles[i];
+
+          if( I.tiles[tileData[0]][tileData[1]].processedFluid ) continue;
 
           if( !I.canStand(tileData[0], tileData[1]+1) ) {
             I.moveFluid(tileData[0], tileData[1], "y", 1);
           } else {
-            // foo           
+            if( I.tiles[tileData[0]] &&
+                I.tiles[tileData[0]][tileData[1]+1] &&
+                I.tiles[tileData[0]][tileData[1]+1].data &&
+                parseInt( I.tiles[tileData[0]][tileData[1]+1].data ) == 3 ) {
+              I.tiles[tileData[0]][tileData[1]+1].nextFluidPush = ["y", -1];
+            }
           }
         }
     };
