@@ -345,7 +345,7 @@ function aMouse() {  //represents the mouse
 			
     };
     
-    isOver= function(targ,cam){ //is the mouse over the player/enemy/object
+    isOver= function(targ,cam){ //is the mouse over the player//object
 	if((mX>(targ.x-cam.x)*16) && (mX<(targ.x-cam.x)*16+targ.width) &&(mY>(targ.y-cam.y)*16) &&(mY<(targ.y-cam.y)*16+targ.height)) {return true;}
 	return false;
     };
@@ -1990,6 +1990,17 @@ function EnemySpawner(I) {  //todo: add more enemy types.
 	I.numspawned++;
     };
     
+    I.animate= function() { 
+	if (milliseconds-this.lastani>CHARANI_RATE) {
+		I.lastani=milliseconds;
+		if(I.ani==0){
+			I.ani=1;
+		}else{
+			I.ani=0;
+		}
+	}
+    };
+    
     I.hurt= function(dmg) {
 	if(I.gothurt>0) {return;}
 	I.hp-=dmg;
@@ -2035,6 +2046,7 @@ function EnemySpawner(I) {  //todo: add more enemy types.
 		    I.spawnMob();
 		    I.timelastspawned=milliseconds;
 		}
+		I.animate();
 	}
     };
     
