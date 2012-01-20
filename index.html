@@ -2985,7 +2985,7 @@ function updateBombedTiles(px,py,r,merp){
 	for(j=py-1;j<py+r;j++){
 	    if ((i>merp.width-1) || (j>merp.height-1) || (i<0) || (j<0)) {return;}
 	    if (merp.tiles[i][j].cracked==1){
-		merp.tiles[i][j].data=0;
+		merp.tiles[i][j].data="9";
 		merp.tiles[i][j].cracked=0;
 	    }
 	}
