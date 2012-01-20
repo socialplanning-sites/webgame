@@ -1738,6 +1738,7 @@ function Map(I) { //map object
         return;
       }
       if( I.tiles[x][y].processedFluid ) return;
+      if( parseInt(I.tiles[x1][y1].data) != 9 ) return;
 
       I.pullFluids(x, y, x1, y1);
       I.setTile(x, y, I.tiles[x1][y1].data);
@@ -1780,6 +1781,10 @@ function Map(I) { //map object
 
           if( !I.canStand(tileData[0], tileData[1]+1) ) {
             I.moveFluid(tileData[0], tileData[1], "y", 1);
+          } else if( !I.canStand(tileData[0]-1, tileData[1]+1) ) {
+            I.moveFluid(tileData[0], tileData[1], "x", -1);
+          } else if( !I.canStand(tileData[0]+1, tileData[1]+1) ) {
+            I.moveFluid(tileData[0], tileData[1], "x", 1);
           } else {
             if( I.tiles[tileData[0]] &&
                 I.tiles[tileData[0]][tileData[1]+1] &&
