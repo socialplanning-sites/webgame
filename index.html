@@ -1772,6 +1772,18 @@ function Map(I) { //map object
         }
         I.fluidTiles = fluidTiles;
 
+        var funcs = [I.updateFluidsFall, I.updateFluidsPush, I.updateFluidsPull];
+        var i = Math.floor(Math.random()*3);
+        funcs.splice(i, 1)[0](fluidTiles);
+
+        var i = Math.floor(Math.random()*2)
+        funcs.splice(i, 1)[0](fluidTiles);
+
+        var i = Math.floor(Math.random()*1);
+        funcs.splice(i, 1)[0](fluidTiles);
+    };
+
+    I.updateFluidsFall = function(fluidTiles) {
         for( var i=0; i<fluidTiles.length; ++i ) {
           var tileData = fluidTiles[i];
 
@@ -1786,7 +1798,9 @@ function Map(I) { //map object
             }
           }
         }
+    }
 
+    I.updateFluidsPull = function(fluidTiles) {
         for( var i=0; i<fluidTiles.length; ++i ) {
           var tileData = fluidTiles[i];
           var pullForce = I.tiles[tileData[0]][tileData[1]].fluidPull;
@@ -1796,7 +1810,9 @@ function Map(I) { //map object
           I.tiles[tileData[0]][tileData[1]].fluidPull = null;
           I.moveFluid(tileData[0], tileData[1], pullForce[0], pullForce[1]);
         }
+    }
 
+    I.updateFluidsPush = function(fluidTiles) {
         for( var i=0; i<fluidTiles.length; ++i ) {
           var tileData = fluidTiles[i];
           var pushForce = I.tiles[tileData[0]][tileData[1]].fluidPush;
