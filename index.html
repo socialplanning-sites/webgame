@@ -194,6 +194,7 @@ function akey(k) {  //represents a keyboard button
     k = k || "space";
     this.key =k;
     this.aflag=false;
+	this.dflag=false;
     this.check= function(){
 	if (keydown[this.key]) { 
 	    this.aflag=true;
@@ -202,6 +203,16 @@ function akey(k) {  //represents a keyboard button
 	if((!keydown[this.key]) && (this.aflag==true)){
 	    this.aflag=false;
 	    return true;
+	}
+    };
+	this.checkDown= function(){
+	if ((keydown[this.key] )  && (!this.dflag)) { 
+	    this.dflag=true;
+	    return true;
+	}
+	if(!keydown[this.key]){
+	    this.dflag=false;
+	    return false;
 	}
     };
     return this;
@@ -442,6 +453,7 @@ var mgcyclekey=new akey("r");
 var usekey=new akey("space");	
 var undokey=new akey("z");		
 var testkey=new akey("y");	
+var jumpkey=new akey("w");	
 
 var stuff=[];
 
@@ -1435,11 +1447,7 @@ var player = {  //the bear.
 	    }
 	}
 	
-	if(keydown.w) {
-	    this.dir=0;
-	    if ((this.y>0) && (this.x<MAP_WIDTH-1)
-		&& (merp.canWalk(this,[this.x],[this.y-1]))
-		&& (merp.canWalk(this,[this.x+1],[this.y-1])) ) {
+	if(jumpkey.checkDown()) {
 		if( SideMode ) {
 		    if( (maps[0].canStand(this.x,this.y+2)) 
 			|| (maps[0].canStand(this.x+1,this.y+2)) && (!this.jumping) ) {
@@ -1448,9 +1456,15 @@ var player = {  //the bear.
 		    } else if ((this.jumping) &&(!this.doublejumping) && (this.doublejumpboots) && (milliseconds-this.jumping>JUMP_BEFORE_DOUBLEJUMP_DUR) ) {
 			this.doublejumping=milliseconds;
 		    }
-		} else {
-		    this.move(0,-1,merp);
-		}
+		} 
+	}
+	
+	if(keydown.w) {
+	    this.dir=0;
+	    if ((this.y>0) && (this.x<MAP_WIDTH-1)
+		&& (merp.canWalk(this,[this.x],[this.y-1]))
+		&& (merp.canWalk(this,[this.x+1],[this.y-1])) ) {
+			if(!SideMode) {this.move(0,-1,merp);}
 	    }
 	} 
 	if(keydown.a) {
