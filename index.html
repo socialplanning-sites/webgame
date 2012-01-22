@@ -1958,8 +1958,8 @@ function Map(I) { //map object
     };
 	
 	I.loadPlatforms = function (name) {
-	var hempstring=localStorage.getItem(name);
-	I.buildMapFromLoadedPlatforms(name, hempstring);
+		var hempstring=localStorage.getItem(name);
+		I.buildMapFromLoadedPlatforms(name, hempstring);
     };
 	
     I.buildMapFromLoadedPlatforms = function(name, hempstring) {
@@ -2541,10 +2541,10 @@ function update() {
 	    var obj = {};
 	    obj.tiles = maps[0].stringifyTiles();
 	    obj.cracked = maps[0].stringifyCracked();
-		obj.platform = maps[0].stringifyPlatforms();
 	    obj.stuff = stringifyStuff();
 	    obj.spawners = stringifySpawners();
 	    obj.junk = stringifyJunk();
+		obj.platforms = maps[0].stringifyPlatforms();
 	    obj = JSON.stringify(obj);
 	    var form = $("<form />").attr("method", "POST").attr("action", "http://server.webgame.zebra-associates.org/"+url);
 	    $("<input />").attr("type", "hidden").attr("name", "map").attr("value", obj).appendTo(form);
@@ -2557,12 +2557,13 @@ function update() {
 		var obj = data;
 		var tiles = obj.tiles;
 		var cracked = obj.cracked;
-		var platform = obj.platform;
+		var platforms = obj.platforms;
 		var stuff = obj.stuff;
 		var junk = obj.junk;
 		var spawners =obj.spawners;
 		maps[0].buildMapFromLoadedTiles('', tiles);
 		maps[0].buildMapFromLoadedCracks('', cracked);
+		maps[0].buildMapFromLoadedPlatforms('', platforms);
 		buildMapFromLoadedStuff('', stuff);
 		buildMapFromLoadedSpawners('', spawners);
 		buildMapFromJunk( junk);
