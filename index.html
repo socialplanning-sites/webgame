@@ -251,6 +251,7 @@ function aExplosion(I) {  //represents a keyboard button
 function aBomb(I) {  //represents a keyboard button
     if( ! I.x ) {I.x=0;}
     if( ! I.y ) {I.y=0;}
+	if( ! I.lastdroptime ) {I.lastdroptime=0;}
     if( ! I.width ) {I.width=64;}
     if( ! I.height ) {I.height=64;}
     if( ! I.timeplaced ) {I.timeplaced=0;}
@@ -296,12 +297,23 @@ function aBomb(I) {  //represents a keyboard button
 	    bombsprite.draw(canvas, (I.x-cam.x)*16, (I.y-cam.y)*16);
     };
     
-    I.update= function(){
+    I.update= function(merp){
 	
 	if((milliseconds-I.timeplaced>I.fuse*1000) && (I.armed)){
 	    I.active=false;
 	    I.explode();
 	}
+	
+		if( SideMode )
+		{ //gravity
+			if( (!merp.canStand(this.x,this.y+2)) && 
+				(!merp.canStand(this.x+1,this.y+2)) ) {
+				this.y+=1;
+			}
+			this.lastdroptime=milliseconds;
+		}
+	
+	
     };
     return I;
 };
@@ -1001,8 +1013,17 @@ var Smedly = { //the first boss, currently has no AI
 	this.gothurt=5;
     },
     
-    update: function() {
+    update: function(merp) {
 	//todo: Smedly AI
+	if( SideMode )
+	{ //gravity
+		if( (!merp.canStand(this.x,this.y+2)) && 
+			(!merp.canStand(this.x+1,this.y+2)) ) {
+				this.y+=1;
+			}
+			this.lastdroptime=milliseconds;
+		}
+	
 	
     },
     
@@ -2256,6 +2277,8 @@ function Enemy(I) {  //todo: add more enemy types.
     I.maxhp=10;
     I.contactDmg=5;
     I.timelastmoved=0;
+	I.lastdroptime=0;
+	I.grav=false;
     I.speed=80;
     I.slowed=0;
     I.tiletype=0;
@@ -2365,6 +2388,7 @@ function Enemy(I) {  //todo: add more enemy types.
 	    I.contactDmg=10;
 	    I.speed=200;
 	    I.maxhp=40;
+		I.grav=true;
 	}else if(this.name=="Hunter"){
 	    I.sprite[0] = Sprite("hunter1");
 	    I.sprite[1] = Sprite("hunter2");
@@ -2372,6 +2396,7 @@ function Enemy(I) {  //todo: add more enemy types.
 	    I.contactDmg=25;
 	    I.speed=100;
 	    I.maxhp=80;
+		I.grav=true;
 	}
     };
     
@@ -2391,7 +2416,16 @@ function Enemy(I) {  //todo: add more enemy types.
 	if(Mouse.isOver(I,cam)) {drawmousetext(I,cam);}
     };
     
-    I.update = function() {
+    I.update = function(merp) {
+	if( SideMode )
+		{ //gravity
+			if( (!merp.canStand(this.x,this.y+2)) && 
+				(!merp.canStand(this.x+1,this.y+2)) ) {
+				this.y+=1;
+			}
+			this.lastdroptime=milliseconds;
+		}
+	
 	if(this.name=="Evil Bunny"){
 	    I.x += I.xVelocity/4;
 	    I.y += I.yVelocity/4;
@@ -2696,7 +2730,7 @@ function update() {
 	});
     
     playerBombs.forEach(function(aBomb) {  
-	    aBomb.update();
+	    aBomb.update(maps[0]);
 	});
     
     explosions.forEach(function(aExplosion) {  
@@ -2745,7 +2779,7 @@ function update() {
 	});
     
     enemies.forEach(function(enemy) {
-            enemy.update();
+            enemy.update(maps[0]);
 	});
     
     enemies = enemies.filter(function(enemy) {
@@ -3070,7 +3104,7 @@ function handleCollisions() {
 	});
     
     if(Smedly.active){
-	Smedly.update();
+	Smedly.update(maps[0]);
 	if(player.checkCollide(Smedly)) {player.hurt(10);}
 	
 	playerBullets.forEach(function(bullet) {
