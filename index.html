@@ -599,6 +599,8 @@ function thing(tipe,px,py) {  //represents collectable objects
     this.yVelocity=0;
     this.type=tipe;
     this.active= true;
+	this.flippers=true;
+	this.lastdroptime= 0;
     this.width= 32;
     this.height= 32;
     this.name="Shroom";
@@ -727,7 +729,7 @@ function thing(tipe,px,py) {  //represents collectable objects
 	}
 	return false;
     };
-    this.update=function(ply) {
+    this.update=function(ply,merp) {
 	if(this.colision(ply)) { //TODO: hold over head ala zelda?
 	    this.active=false;
 	    if (this.type==0) {ply.heal(10); playSound("Item");}  //mushroom heals
@@ -828,6 +830,16 @@ function thing(tipe,px,py) {  //represents collectable objects
 		textText="You found the Rum Ham!  Looks like you'll be getting HAMmered tonight!";
 	    } //boots
 	}
+	
+	if( SideMode )
+	{ //gravity
+	    if( (!merp.canStand(this.x,this.y+2)) && 
+			(!merp.canStand(this.x+1,this.y+2)) ) {
+			this.y+=1;
+		 }
+		this.lastdroptime=milliseconds;
+	}
+	
 	
 	this.x += this.xVelocity;
 	this.y += this.yVelocity;
@@ -2699,7 +2711,7 @@ function update() {
     }
     
     stuff.forEach(function(thing) {
-            thing.update(player);
+            thing.update(player,maps[0]);
 	});
     
     if(!stuff[0]) {gotall=true;} //todo: change smedly requirements
