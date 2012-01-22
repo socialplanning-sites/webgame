@@ -1583,7 +1583,7 @@ var edcursor = { //edit cursor
 	}
 	
 	if(platkey.check()) {
-		maps[0].tiles[edcursor.x][edcursor.y].platform=true;
+		maps[0].tiles[edcursor.x][edcursor.y].platform=1;
 	}
 	
 	
@@ -1966,7 +1966,7 @@ function Map(I) { //map object
 	tempstring=hempstring.split(",");
 	for (i=0;i<MAP_WIDTH; i++){
 	    for (j=0;j<MAP_HEIGHT; j++){
-		I.tiles[i][j].platform = tempstring[j+MAP_HEIGHT*i];
+		I.tiles[i][j].platform = parseInt(tempstring[j+MAP_HEIGHT*i]);
 	    }
 	}
     };
@@ -2561,6 +2561,7 @@ function update() {
 		var stuff = obj.stuff;
 		var junk = obj.junk;
 		var spawners =obj.spawners;
+window.loadedMap = obj;
 		maps[0].buildMapFromLoadedTiles('', tiles);
 		maps[0].buildMapFromLoadedCracks('', cracked);
 		maps[0].buildMapFromLoadedPlatforms('', platforms);
@@ -2574,6 +2575,7 @@ function update() {
 	if(savekey.check()) {
 	    maps[0].saveTiles("edsmap");
 	    maps[0].saveCracked("edscrack");
+	    maps[0].savePlatforms("edsplatforms");
 	    saveStuff("edsstuff");
 	    saveSpawners("edsspawners");
 	    saveJunk("edsjunk");
@@ -2583,6 +2585,7 @@ function update() {
 	if(loadkey.check()) {
 	    maps[0].loadTiles("edsmap");
 	    maps[0].loadCracked("edscrack");
+	    maps[0].loadPlatforms("edsplatforms");
 	    loadStuff("edsstuff");
 	    loadSpawners("edsspawners");
 	    loadJunk("edsjunk");
