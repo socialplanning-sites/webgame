@@ -97,7 +97,7 @@ var WATER_RATE=1000;
 var CHARANI_RATE= 200;
 var SPAWN_X=22;
 var SPAWN_Y=19;
-var GRAVITY_RATE=20;
+var GRAVITY_RATE=80;
 //var keychart = ["w","a","d","s","up","right","down","left","m","n","shift"];
 
 var darkgrasssprite = Sprite("darkgrass"); //begin loading images.  Eventually I should put them all on one .png file
@@ -139,6 +139,7 @@ var bombsprite =Sprite("bomb");
 var redbombsprite =Sprite("redbomb");
 var shieldsprite =Sprite("bubble");
 var crackedsprite =Sprite("cracked");
+var platformsprite =Sprite("plat");
 var icesprite =Sprite("frozen");
 var explosionsprite=new Array(4);
 explosionsprite[0] =Sprite("explosion0");
@@ -454,6 +455,7 @@ var usekey=new akey("space");
 var undokey=new akey("z");		
 var testkey=new akey("y");	
 var jumpkey=new akey("w");	
+var platkey=new akey("p");	
 
 var stuff=[];
 
@@ -867,6 +869,7 @@ function makeNewTile() { //the Map is made of a 2D array of tiles.
 	x: 0,
 	y: 0,
 	cracked: 0,
+	platform: 0,
         fluidVacuum: false,
 	ani:0,
 	color: "#FFC020",
@@ -920,6 +923,9 @@ function makeNewTile() { //the Map is made of a 2D array of tiles.
 	    }
 	    if(this.cracked==1){
 		crackedsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+	    }
+		if(this.platform==1){
+		platformsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 	    }
             
 	}
@@ -1459,6 +1465,7 @@ var player = {  //the bear.
 		} 
 	}
 	
+	
 	if(keydown.w) {
 	    this.dir=0;
 	    if ((this.y>0) && (this.x<MAP_WIDTH-1)
@@ -1573,6 +1580,10 @@ var edcursor = { //edit cursor
 	
 	if(cmousekey.check()) {
 	    this.mouse=!this.mouse;
+	}
+	
+	if(platkey.check()) {
+		maps[0].tiles[edcursor.x][edcursor.y].platform=true;
 	}
 	
 	
@@ -1869,6 +1880,17 @@ function Map(I) { //map object
 	localStorage.setItem(name, tempstring);
 	
     };
+	
+	I.stringifyPlatforms = function (name) {
+	var tempstring= "";
+	for (i=0;i<MAP_WIDTH; i++){
+	    for (j=0;j<MAP_HEIGHT; j++){
+		tempstring = tempstring +I.tiles[i][j].platform;
+		tempstring += ","
+		    }
+	}
+	return tempstring;
+    };
     
     I.stringifyCracked = function (name) {
 	var tempstring= "";
@@ -1883,6 +1905,12 @@ function Map(I) { //map object
     
     I.saveCracked = function (name) {
 	var tempstring = I.stringifyCracked(name);
+	localStorage.setItem(name, tempstring);
+	
+    };
+	
+	I.savePlatforms = function (name) {
+	var tempstring = I.stringifyPlatforms(name);
 	localStorage.setItem(name, tempstring);
 	
     };
@@ -1928,6 +1956,21 @@ function Map(I) { //map object
 	    }
 	}
     };
+	
+	I.loadPlatforms = function (name) {
+	var hempstring=localStorage.getItem(name);
+	I.buildMapFromLoadedPlatforms(name, hempstring);
+    };
+	
+    I.buildMapFromLoadedPlatforms = function(name, hempstring) {
+	tempstring=hempstring.split(",");
+	for (i=0;i<MAP_WIDTH; i++){
+	    for (j=0;j<MAP_HEIGHT; j++){
+		I.tiles[i][j].platform = tempstring[j+MAP_HEIGHT*i];
+	    }
+	}
+    };
+	
     I.setTile = function (x,y,data) {
 	I.tiles[x][y].data = data;
     };
@@ -1966,6 +2009,8 @@ function Map(I) { //map object
         }
 	if ((I.tiles[x][y].data ==7)  || (I.tiles[x][y].data ==7 ) || (I.tiles[x][y].data ==5) || (I.tiles[x][y].data ==3)|| (I.tiles[x][y].data ==8)) {
 	    return true;
+	}else if (I.tiles[x][y].platform){
+		return true;
 	}else {return false;}
     };
     
@@ -2496,6 +2541,7 @@ function update() {
 	    var obj = {};
 	    obj.tiles = maps[0].stringifyTiles();
 	    obj.cracked = maps[0].stringifyCracked();
+		obj.platform = maps[0].stringifyPlatforms();
 	    obj.stuff = stringifyStuff();
 	    obj.spawners = stringifySpawners();
 	    obj.junk = stringifyJunk();
@@ -2511,6 +2557,7 @@ function update() {
 		var obj = data;
 		var tiles = obj.tiles;
 		var cracked = obj.cracked;
+		var platform = obj.platform;
 		var stuff = obj.stuff;
 		var junk = obj.junk;
 		var spawners =obj.spawners;
