@@ -1417,10 +1417,10 @@ var player = {  //the bear.
     move: function (px,py,merp) {///placeholder
 	this.tiletype=merp.walls[this.x][this.y].data;
 	var slowed=0;
-	if(this.tiletype==3) {slowed=30;}
+	if(this.tiletype==44) {slowed=30;}
 	if(milliseconds-this.timelastmoved<this.speed+slowed){ return; }
-	if (this.tiletype==3) {playSound("Swim");}
-	if (this.tiletype==1) {playSound("GrassWalk");}
+	if (this.tiletype==42) {playSound("Swim");}
+	if (this.tiletype==44) {playSound("GrassWalk");}
 	if (this.tiletype==20) {this.hurt(3);} //poison ground
 	this.x+=px;
 	this.y+=py
@@ -2541,7 +2541,7 @@ player.init();
 //addEdit(maps[0]);
 
 
-spawners.push(new EnemySpawner({x:36,y:50,type: "Chaser",spawnrate:20}));
+//spawners.push(new EnemySpawner({x:36,y:50,type: "Chaser",spawnrate:20}));
 //spawners.push(new EnemySpawner({x:30,y:3,type: "Evil Bunny",spawnrate:10}));
 
 /*chaser=new Enemy();
