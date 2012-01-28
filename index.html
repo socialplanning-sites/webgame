@@ -266,7 +266,6 @@ function aBomb(I) {  //represents a keyboard button
     
     
     I.explode =function() {
-	//check radius for brick/darkwood, replace with grass/crater
 	//particle smoke?
 	ptimeplaced = milliseconds;
 	
@@ -1504,10 +1503,13 @@ var edcursor = { //edit cursor
     color: "#00A",
     x: 1,
     y: 1,
+	swapto: 0,
+	swapfrom: 0,
     slow: false,
     mouse: true,
     lastx:0,
     selected: false,
+	swpselected: false,
     lasty:0,
     cornerd: false,
     size: 1, //TODO: add for loops to draw, placement to make larger brush size, center it?
@@ -1590,7 +1592,7 @@ var edcursor = { //edit cursor
 	
 	if(slowkey.check()) {
 	    this.mode++;
-	    if (this.mode>5) {this.mode=0;} //NUM EDIT MODES
+	    if (this.mode>6) {this.mode=0;} //NUM EDIT MODES
 	}
 	
 	if(cmousekey.check()) {
@@ -2692,28 +2694,50 @@ function update() {
 	    if((!Mouse.mouseIsDown) && (Mouse.lFlag)){ //for single click
 		Mouse.lFlag=false;
 		//if((edcursor.mode==0)  || (edcursor.mode==2) ||(edcursor.mode==3) ) {addEdit(maps[0]);}
-		if(edcursor.mode==5){
-		    if (!edcursor.selected) {
-			if (Mouse.isOver(player,camera)) {player.selected=true; edcursor.selected=true;} //todo:this better.
-			if (Mouse.isOver(Wizard,camera)) {Wizard.selected=true; edcursor.selected=true;}
-			if (Mouse.isOver(Smedly,camera)) {Smedly.selected=true; edcursor.selected=true;}
-		    }else{
-			if (player.selected) {
-			    player.x=edcursor.x;
-			    player.y=edcursor.y;
-			    player.selected=false;
-			}else 	if (Wizard.selected) {
-			    Wizard.x=edcursor.x;
-			    Wizard.y=edcursor.y;
-			    Wizard.selected=false;
-			}else 	if (Smedly.selected) {
-			    Smedly.x=edcursor.x;
-			    Smedly.y=edcursor.y;
-			    Smedly.selected=false;
-			}
-			edcursor.selected=false;
+		if(edcursor.mode==5)
+		{
+		    if (!edcursor.selected) 
+			{
+				if (Mouse.isOver(player,camera)) {player.selected=true; edcursor.selected=true;} //todo:this better.
+				if (Mouse.isOver(Wizard,camera)) {Wizard.selected=true; edcursor.selected=true;}
+				if (Mouse.isOver(Smedly,camera)) {Smedly.selected=true; edcursor.selected=true;}
+		    }else
+			{
+				if (player.selected) {
+					player.x=edcursor.x;
+					player.y=edcursor.y;
+					player.selected=false;
+				}else if (Wizard.selected) {
+					Wizard.x=edcursor.x;
+					Wizard.y=edcursor.y;
+					Wizard.selected=false;
+				}else if (Smedly.selected) {
+					Smedly.x=edcursor.x;
+					Smedly.y=edcursor.y;
+					Smedly.selected=false;
+				}
+				edcursor.selected=false;
 		    }
 		    
+		}else if(edcursor.mode==6)
+		{
+		    if(edcursor.swpselected)
+			{
+				edcursor.swpselected=false;
+				edcursor.swapto=maps[0].tiles[edcursor.x][edcursor.y].data;
+				addEdit(maps[0]);
+				for (i=0;i<MAP_WIDTH;i++) 
+				{
+					for (j=0;j<MAP_HEIGHT;j++) 
+					{
+						if(maps[0].tiles[i][j].data == edcursor.swapfrom) {maps[0].setTile(i,j,edcursor.swapto);}
+					}
+				}
+			}else
+			{
+				edcursor.swpselected=true;
+				edcursor.swapfrom=maps[0].tiles[edcursor.x][edcursor.y].data;
+			}
 		}else if(edcursor.mode==3){
 		    if(edcursor.cornered){
 			addEdit(maps[0]);
@@ -3025,18 +3049,18 @@ player.placeBomb = function() {
 
 function addEdit(merp){
     //if(editHistory.length>6) {editHistory.shift();}
-    var empstr=merp.stringifyTiles();
-	var hempstr=merp.stringifyWalls();
-	empstr=empstr+","+hempstr;
-    editHistory.push(empstr);
+	var obj= {};
+    obj.tiles=merp.stringifyTiles();
+	obj.walls=merp.stringifyWalls();
+    editHistory.push(obj);
 }
 function undoEdit(){
     if(editHistory.length<1){ return;}
-    var empstr=editHistory.pop();
-	empstr.split(",");
-    if (!empstr) {  alert ("Nothing to undo.");return;}
-    maps[0].buildMapFromLoadedTiles( "name", empstr[0]);
-    maps[0].buildMapFromLoadedWalls( "name", empstr[1]);
+    var obj=editHistory.pop();
+
+    if (!obj) {  alert ("Nothing to undo.");return;}
+    maps[0].buildMapFromLoadedTiles( "name", obj.tiles);
+    maps[0].buildMapFromLoadedWalls( "name", obj.walls);
 };
 
 
@@ -3093,7 +3117,7 @@ function draw() { //Main render function
 	canvas.fillText("EDIT MODE", 16, 16);
 	
 	//deug
-	canvas.fillText(edcursor.type,105, 120);	
+	canvas.fillText(edcursor.swpselected,105, 120);	
 	
 	if(edcursor.mode==0) {
 	    canvas.fillText("Placing Tiles", 16, 42);
@@ -3123,6 +3147,13 @@ function draw() { //Main render function
 		canvas.fillText("Select entity to move.", 16, 64);
 	    }else{
 		canvas.fillText("Select desired position.", 16, 64);
+	    }
+	}else if(edcursor.mode==6) {
+	    canvas.fillText("Tile Swap Mode", 16, 42);
+	    if(!edcursor.swpselected) {	
+		canvas.fillText("Select tile to be replaced.", 16, 64);
+	    }else{
+		canvas.fillText("Select replacement tile.", 16, 64);
 	    }
 	}
     }
