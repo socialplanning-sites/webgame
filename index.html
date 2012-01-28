@@ -468,7 +468,7 @@ var undokey=new akey("z");
 var testkey=new akey("y");	
 var jumpkey=new akey("w");	
 var platkey=new akey("p");	
-
+var delwallkey=new akey("r");	
 var stuff=[];
 
 function stringifySpawners(name){
@@ -1605,6 +1605,11 @@ var edcursor = { //edit cursor
 		}
 	}
 	
+	if(delwallkey.check()) {
+		
+			maps[0].setWall(edcursor.x,edcursor.y,0);
+	}
+	
 	
 	
 	if (this.slow) {
@@ -2659,7 +2664,7 @@ function update() {
 	}
 	
 	if(helpkey.check()){
-	    alert("W,A,S,D = move cursor, B = tiles/items toggle, Space = Place block, V = Mouse mode toggle, N = switch block/items, Shift= Center Camera on cursor, M= switch to player mode, O = save map, L= loadmap I= WEBSAVE K= WEBLOAD");
+	    alert("W,A,S,D = move cursor, B = tiles/items toggle, Space = Place block, R = remove wall, P = Place Platform, N = switch block/items, Shift= Center Camera on cursor, M= switch to player mode, O = save map, L= loadmap I= WEBSAVE K= WEBLOAD");
 	}
 	
 	if (edcursor.mouse) {
