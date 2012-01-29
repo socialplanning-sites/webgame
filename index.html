@@ -964,9 +964,15 @@ function thing(tipe,px,py,col) {  //represents collectable objects
 		ply.hasbombs=true;
 		ply.bombs=100;
 		ply.sword=ironsword;
+		ply.doub
+		ply.fallfeather=true;
+		ply.haslauncher=true;
+		ply.hasbears=true;
+		ply.bears=3;
+		ply.doubljumpboots=true;
 		ply.dashboots=true;
 		ply.speed=10;
-		ply.fllipers=true;
+		ply.flippers=true;
 		ply.grabedsprite=this.sprite;
 		ply.key[0]=true;
 		ply.key[1]=true;
@@ -1601,6 +1607,7 @@ var player = {  //the bear.
 				this.falling=milliseconds;
 			}
 			player.y+=1;
+			camera.center(this);
 			}else { 
 				if((this.falling) && (milliseconds-this.falling>FALL_DMG) && (!this.fallfeather)){
 					this.hurt(10);
@@ -3707,7 +3714,6 @@ player.draw = function(cam) {
     if(Mouse.isOver(player,cam)) {drawmousetext(player,cam);}
     
 };
-
 
 
       //]]>
