@@ -151,6 +151,7 @@ var shieldsprite =Sprite("bubble");
 var crackedsprite =Sprite("cracked");
 var platformsprite =Sprite("plat");
 var icesprite =Sprite("frozen");
+var decoysprite =Sprite("stuffedbear");
 var explosionsprite=new Array(4);
 explosionsprite[0] =Sprite("explosion0");
 explosionsprite[1] =Sprite("explosion1");
@@ -163,6 +164,7 @@ Mode = 0;
 TopView=true;
 var playerBullets = [];
 var playerBombs = [];
+var playerDecoys = [];
 var explosions = [];
 var edititems= [];
 
@@ -255,6 +257,48 @@ function aExplosion(I) {  //represents a keyboard button
 	}
 	return false;
     }	;
+    return I;
+};
+
+function aDecoy(I) {  //represents a keyboard button
+    if( ! I.x ) {I.x=0;}
+    if( ! I.y ) {I.y=0;}
+	if( ! I.lastdroptime ) {I.lastdroptime=0;}
+    if( ! I.width ) {I.width=64;}
+    if( ! I.height ) {I.height=64;}
+    if( ! I.timeplaced ) {I.timeplaced=0;}
+    if( ! I.fuse ) {I.fuse=10;}
+    if( ! I.active ) {I.active=false;}
+
+    
+    
+    I.kill =function() {
+	//particle smoke?
+	I.active=false;
+	};
+	
+    I.draw =function(cam) {
+	
+		decoysprite.draw(canvas, (I.x-cam.x)*16, (I.y-cam.y)*16);
+    };
+    
+    I.update= function(merp){
+	
+	if((milliseconds-I.timeplaced>I.fuse*1000) ){
+	    I.kill();	
+	}
+	
+		if( SideMode )
+		{ //gravity
+			if( (!merp.canStand(this.x,this.y+2)) && 
+				(!merp.canStand(this.x+1,this.y+2)) ) {
+				this.y+=1;
+			}
+			this.lastdroptime=milliseconds;
+		}
+	
+	
+    };
     return I;
 };
 
@@ -472,6 +516,7 @@ var cmousekey=new akey("v");
 var defkey=new akey("q");
 var magickey=new akey("e");
 var mgcyclekey=new akey("r");
+var itemcyclekey=new akey("f");
 var usekey=new akey("space");	
 var undokey=new akey("z");		
 var testkey=new akey("y");	
@@ -1203,6 +1248,7 @@ var player = {  //the bear.
     hp:50,
     mp:20,
     curspell: 0,
+	curitem: 0,
     maxmp:20,
     type: 0,
     hasbombs: false,
@@ -1567,6 +1613,15 @@ var player = {  //the bear.
 	    }
 	}
 	
+		
+	if(itemcyclekey.check()){
+	    this.curitem++;
+	    
+	    if(this.curitem>2){ 
+		this.curitem=0;
+	    }
+	}
+	
 	if(magickey.check()){
 	    if(this.spells[this.curspell]){
 		if(this.curspell==0) {this.shoot();}
@@ -1576,9 +1631,19 @@ var player = {  //the bear.
 	}
 	
 	if(usekey.check()){
-	    if(this.hasbombs){
-		this.placeBomb();
-	    }
+		if(this.curitem==0){ //bombs
+			if(this.hasbombs){
+			this.placeBomb();
+			}
+		}else if(this.curitem==1){ //decoy
+			if(this.hasbears){
+			this.placeDecoy();
+			}
+		}else if(this.curitem==2){ //launcher
+			if((this.hasbombs) && (this.haslauncher)){
+			this.launchBomb();
+			}
+		}
 	}
 	
 	if(jumpkey.checkDown()) {
@@ -2622,10 +2687,19 @@ function Enemy(I) {  //todo: add more enemy types.
 	    
 	    I.xVelocity = 3 * Math.sin(I.age * Math.PI / 64);
 	}else if((this.name=="Chaser") || (this.name=="Hunter")){
+		if(playerDecoys.length<1){
 	    if(player.x>I.x) {I.move(1,0,maps[0]);}
 	    if(player.x<I.x) {I.move(-1,0,maps[0]);}
 	    if(player.y>I.y) {I.move(0,1,maps[0]);}
 	    if(player.y<I.y) {I.move(0,-1,maps[0]);}
+		}else
+		{
+			layer=playerDecoys[0];
+			if(layer.x>I.x) {I.move(1,0,maps[0]);}
+			if(layer.x<I.x) {I.move(-1,0,maps[0]);}
+			if(layer.y>I.y) {I.move(0,1,maps[0]);}
+			if(layer.y<I.y) {I.move(0,-1,maps[0]);}
+		}
 	}
 	I.age++;
         
@@ -2973,6 +3047,10 @@ function update() {
 	    aBomb.update(maps[0]);
 	});
     
+	playerDecoys.forEach(function(aDecoy) {  
+	    aDecoy.update(maps[0]);
+	});
+	
     explosions.forEach(function(aExplosion) {  
 	    aExplosion.update();
 	});
@@ -3006,6 +3084,10 @@ function update() {
             return aBomb.active;
 	});
     
+	playerDecoys = playerDecoys.filter(function(aDecoy) {
+            return aDecoy.active;
+	});
+	
     explosions = explosions.filter(function(aExplosion) {
             return aExplosion.active;
 	});
@@ -3175,6 +3257,41 @@ player.placeBomb = function() {
     
 };
 
+player.placeDecoy = function() {
+    if (this.bears<1) {return;}
+    this.bears--;
+    //playSound("placebomb");
+    
+    ttimeplaced = milliseconds
+    
+    playerDecoys.push(aDecoy({ 
+		fuse: 10,
+		x: this.x,
+		y: this.y,
+		timeplaced: ttimeplaced,
+		active: true
+	    }));
+    
+};
+
+player.launchBomb = function() {
+    if (this.bombs<1) {return;}
+    this.bombs--;
+    //playSound("placebomb");
+    
+    ttimeplaced = milliseconds
+    
+    playerBombs.push(aBomb({ 
+		fuse: 2,
+		x: this.x,
+		y: this.y,
+		timeplaced: ttimeplaced,
+		armed: true,
+		active: true
+	    }));
+    
+};
+
 function addEdit(merp){
     //if(editHistory.length>6) {editHistory.shift();}
 	var obj= {};
@@ -3211,6 +3328,9 @@ function draw() { //Main render function
 	    aBomb.draw(camera);
 	});
     
+	playerDecoys.forEach(function(aDecoy) {
+	    aDecoy.draw(camera);
+	});
     stuff.forEach(function(thing) {
             thing.draw(camera);
 	});
