@@ -101,7 +101,7 @@ var CHARANI_RATE= 200;
 var FALL_DMG=900;
 var SPAWN_X=22;
 var SPAWN_Y=19;
-var GRAVITY_RATE=20;
+var GRAVITY_RATE=10;
 //var keychart = ["w","a","d","s","up","right","down","left","m","n","shift"];
 
 var darkgrasssprite = Sprite("darkgrass"); //begin loading images.  Eventually I should put them all on one .png file
@@ -1281,6 +1281,7 @@ var player = {  //the bear.
     color: "#00A",
     x: 22,
     y: 19,
+	aim:0,
 	haslauncher: false,
 	bears: 0,
 	hasbears: false,
@@ -1742,22 +1743,29 @@ var player = {  //the bear.
 	
 	
 	if(keydown.w) {
-	    this.dir=0;
+	    
 	    if ((this.y>0) && (this.x<MAP_WIDTH-1)
 		&& (merp.canWalk(this,[this.x],[this.y-1]))
 		&& (merp.canWalk(this,[this.x+1],[this.y-1])) ) {
-			if(!SideMode) {this.move(0,-1,merp);}
+			if(!SideMode) {this.dir=0; this.move(0,-1,merp);} else {this.aim=-1;}
 	    }
 	} 
 	if(keydown.a) {
+		this.aim=0;
 	    this.dir=3;
 	    if ((this.x>0) && (this.y<MAP_HEIGHT-1) && (merp.canWalk(this,[this.x-1],[this.y])) && (merp.canWalk(this,[this.x-1],[this.y+1]))) {this.move(-1,0,merp);}
 	}if(keydown.d) {
 	    this.dir=1;
+		this.aim=0;
 	    if ((this.y<MAP_HEIGHT-1) && (this.x<MAP_WIDTH-2) &&(merp.canWalk(this,[this.x+2],[this.y])) && (merp.canWalk(this,[this.x+2],[this.y+1]))) {this.move(1,0,merp);}
 	}if(keydown.s) {
-	    this.dir=2;
-	    if ((this.y<MAP_HEIGHT-2) && (this.x<MAP_WIDTH-1) && (merp.canWalk(this,[this.x],[this.y+2])) && (merp.canWalk(this,[this.x+1],[this.y+2]))) {this.move(0,1,merp);}
+		if(SideMode){
+			this.aim=1;
+		}else
+		{
+			this.dir=2;
+	    }
+		if ((this.y<MAP_HEIGHT-2) && (this.x<MAP_WIDTH-1) && (merp.canWalk(this,[this.x],[this.y+2])) && (merp.canWalk(this,[this.x+1],[this.y+2]))) {this.move(0,1,merp);}
 	}
 	this.x = this.x.clamp(0, MAP_WIDTH-1);
 	this.y = this.y.clamp(0, MAP_HEIGHT-1);
@@ -3343,6 +3351,26 @@ player.placeBomb = function() {
     
 };
 
+player.placeMine = function() {
+    if (this.bombs<1) {return;}
+    this.bombs--;
+    //playSound("placebomb");
+    
+    ttimeplaced = milliseconds
+    
+    playerBombs.push(aBomb({ 
+		fuse: 400,
+		x: this.x,
+		y: this.y,
+		proxy: true,
+		gravity: true,
+		timeplaced: ttimeplaced,
+		armed: true,
+		active: true
+	    }));
+    
+};
+
 player.placeDecoy = function() {
     if (this.bears<1) {return;}
     this.bears--;
@@ -3372,7 +3400,7 @@ player.launchBomb = function() {
 	if (this.dir==3) {tar=-2;}
 	if (this.dir==0) {mar=-2;}
 	if (this.dir==2) {mar=2;}
-	//if(SideMode) {mar-=1;}
+	if(SideMode) {mar+=this.aim;}
     playerBombs.push(aBomb({ 
 		fuse: 2,
 		x: this.x,
@@ -3631,8 +3659,8 @@ player.draw = function(cam) {
 	if(this.curitem==2) { //draw launcher if equipped
 	if(this.dir==1){launcherrsprite.draw(canvas, (this.x-cam.x+1)*16-12, (this.y-cam.y+1)*16-6);}
 	if(this.dir==3){launcherlsprite.draw(canvas, (this.x-cam.x+1)*16-24, (this.y-cam.y+1)*16-6);}
-	if(this.dir==0){launcherusprite.draw(canvas, (this.x-cam.x+1)*16-19, (this.y-cam.y+1)*16-12);}
-	if(this.dir==2){launcherdsprite.draw(canvas, (this.x-cam.x+1)*16-24, (this.y-cam.y+1)*16-6);}
+	if(this.dir==0){launcherusprite.draw(canvas, (this.x-cam.x+1)*16-16, (this.y-cam.y+1)*16-18);}
+	if(this.dir==2){launcherdsprite.draw(canvas, (this.x-cam.x+1)*16+2, (this.y-cam.y+1)*16-7);}
 	
     }
     
