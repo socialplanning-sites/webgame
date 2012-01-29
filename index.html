@@ -306,6 +306,8 @@ function aDecoy(I) {  //represents a keyboard button
 function aBomb(I) {  //represents a keyboard button
     if( ! I.x ) {I.x=0;}
     if( ! I.y ) {I.y=0;}
+	if( ! I.xv ) {I.xv=0;}
+	if( ! I.yv ) {I.yv=0;}
 	if( ! I.lastdroptime ) {I.lastdroptime=0;}
     if( ! I.width ) {I.width=64;}
     if( ! I.height ) {I.height=64;}
@@ -313,6 +315,7 @@ function aBomb(I) {  //represents a keyboard button
     if( ! I.fuse ) {I.fuse=4;}
     if( ! I.active ) {I.active=false;}
     if( ! I.armed ) {I.armed=false;}
+    if( ! I.flippers ) {I.flippers=false;}
     I.arm= function(x,y){
 	I.timeplaced = milliseconds;
 	I.armed=true;
@@ -357,7 +360,11 @@ function aBomb(I) {  //represents a keyboard button
 	    I.active=false;
 	    I.explode();
 	}
-	
+		
+	I.x+=I.xv;
+	I.y+=I.yv;
+	if(!merp.canWalk(this,this.x,this.y)) {this.explode();}
+
 		if( SideMode )
 		{ //gravity
 			if( (!merp.canStand(this.x,this.y+2)) && 
@@ -2262,6 +2269,7 @@ window.loadedMap = obj;
     };
     
     I.canWalk = function (ply,x,y) { //overhead + side mode
+	if((x<0) || (y<0) || (y>MAP_HEIGHT-1) || (x>MAP_WIDTH-1)) {return false;}
 	if ((I.walls[x][y].data >44)  && (I.walls[x][y].data <56) ){ //doors
 		if (ply.key[I.walls[x][y].data-45]) {
 		    playSound("unlock");
@@ -3292,11 +3300,19 @@ player.launchBomb = function() {
     //playSound("placebomb");
     
     ttimeplaced = milliseconds
-    
+    var tar=0;
+	var mar=0;
+	if (this.dir==1) {tar=2;}
+	if (this.dir==3) {tar=-2;}
+	if (this.dir==0) {mar=-2;}
+	if (this.dir==2) {mar=2;}
+	if(SideMode) {mar+=2;}
     playerBombs.push(aBomb({ 
 		fuse: 2,
 		x: this.x,
 		y: this.y,
+		xv: tar,
+		yv: mar,
 		timeplaced: ttimeplaced,
 		armed: true,
 		active: true
