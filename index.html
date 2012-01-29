@@ -153,6 +153,10 @@ var platformsprite =Sprite("plat");
 var icesprite =Sprite("frozen");
 var decoysprite =Sprite("stuffedbear");
 var launchersprite= Sprite("launcher");
+var launcherlsprite= Sprite("launcherl");
+var launcherrsprite= Sprite("launcherr");
+var launcherusprite= Sprite("launcheru");
+var launcherdsprite= Sprite("launcherd");
 var explosionsprite=new Array(4);
 explosionsprite[0] =Sprite("explosion0");
 explosionsprite[1] =Sprite("explosion1");
@@ -3603,6 +3607,14 @@ player.draw = function(cam) {
 	{
 	    this.sprites[this.dir][this.ani].draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 	}
+	
+	if(this.curitem==2) { //draw launcher if equipped
+	if(this.dir==1){launcherrsprite.draw(canvas, (this.x-cam.x+1)*16-12, (this.y-cam.y+1)*16-6);}
+	if(this.dir==3){launcherlsprite.draw(canvas, (this.x-cam.x+1)*16-24, (this.y-cam.y+1)*16-6);}
+	if(this.dir==0){launcherusprite.draw(canvas, (this.x-cam.x+1)*16-19, (this.y-cam.y+1)*16-12);}
+	if(this.dir==2){launcherdsprite.draw(canvas, (this.x-cam.x+1)*16-24, (this.y-cam.y+1)*16-6);}
+	
+    }
     
     //cover player in grass if neccisary
     if(maps[0].walls[this.x][this.y+1].data==44) {
