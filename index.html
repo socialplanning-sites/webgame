@@ -1674,10 +1674,30 @@ var player = {  //the bear.
 	
 		
 	if(itemcyclekey.check()){
-	    this.curitem++;
-	    
-	    if(this.curitem>2){ 
-		this.curitem=0;
+	    if(this.curitem==0){ 
+			if(this.hasbears)
+			{
+				this.curitem=1;
+			}else if (this.haslauncher)
+			{
+				this.curitem=2
+			}
+	    }else if(this.curitem==1){ 
+			if(this.haslauncher)
+			{
+				this.curitem=2;
+			}else if (this.hasbombs)
+			{
+				this.curitem=0
+			}
+	    }else if(this.curitem==2){ 
+			if(this.hasbombs)
+			{
+				this.curitem=0;
+			}else if (this.hasbears)
+			{
+				this.curitem=1
+			}
 	    }
 	}
 	
@@ -3331,7 +3351,7 @@ player.placeDecoy = function() {
     ttimeplaced = milliseconds
     
     playerDecoys.push(aDecoy({ 
-		fuse: 10,
+		fuse: 12,
 		x: this.x,
 		y: this.y,
 		timeplaced: ttimeplaced,
