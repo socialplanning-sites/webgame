@@ -11,6 +11,9 @@
 	Your browser does not support the audio element.
    	</audio>
 		
+	<audio id="jump" preload="auto">
+    <source src="sounds/jump.wav" type="audio/wav" />
+    </audio>
 		
 	<audio id="explosion" preload="auto">
     <source src="sounds/explosion.wav" type="audio/wav" />
@@ -864,7 +867,7 @@ function thing(tipe,px,py) {  //represents collectable objects
 		textPause=true;
 		ply.grabedsprite=this.sprite;
 		textText="You found the Fall Feather! now you don't take fall damage!";
-	    } //boots
+	    } //fall feather
 	}
 	
 	if( SideMode )
@@ -1506,10 +1509,12 @@ var player = {  //the bear.
 		    if( (maps[0].canStand(this.x,this.y+2)) 
 			|| (maps[0].canStand(this.x+1,this.y+2)) && (!this.jumping) ) {
 			this.jumping = milliseconds;
+			playSound("jump");
 			
 		    } else if (((this.jumping)|| (this.falling)) && (!this.doublejumped) &&(!this.doublejumping) && (this.doublejumpboots) && (milliseconds-this.jumping>JUMP_BEFORE_DOUBLEJUMP_DUR) ) {
 			this.doublejumping=milliseconds;
 			this.doublejumped=true;
+			playSound("jump");
 		    }
 		} 
 	}
