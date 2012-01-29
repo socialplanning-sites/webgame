@@ -101,7 +101,7 @@ var CHARANI_RATE= 200;
 var FALL_DMG=900;
 var SPAWN_X=22;
 var SPAWN_Y=19;
-var GRAVITY_RATE=20;
+var GRAVITY_RATE=10;
 //var keychart = ["w","a","d","s","up","right","down","left","m","n","shift"];
 
 var darkgrasssprite = Sprite("darkgrass"); //begin loading images.  Eventually I should put them all on one .png file
@@ -153,6 +153,10 @@ var platformsprite =Sprite("plat");
 var icesprite =Sprite("frozen");
 var decoysprite =Sprite("stuffedbear");
 var launchersprite= Sprite("launcher");
+var launcherlsprite= Sprite("launcherl");
+var launcherrsprite= Sprite("launcherr");
+var launcherusprite= Sprite("launcheru");
+var launcherdsprite= Sprite("launcherd");
 var explosionsprite=new Array(4);
 explosionsprite[0] =Sprite("explosion0");
 explosionsprite[1] =Sprite("explosion1");
@@ -170,7 +174,7 @@ var explosions = [];
 var edititems= [];
 
 var NUM_TILES=58; //numer of tile types
-var NUM_THINGS=25;
+var NUM_THINGS=26;
 var FROZE_DUR=2000;
 var JUMP_DIR=100;
 var JUMP_BEFORE_DOUBLEJUMP_DUR=100;
@@ -306,6 +310,8 @@ function aDecoy(I) {  //represents a keyboard button
 function aBomb(I) {  //represents a keyboard button
     if( ! I.x ) {I.x=0;}
     if( ! I.y ) {I.y=0;}
+	if( ! I.xv ) {I.xv=0;}
+	if( ! I.yv ) {I.yv=0;}
 	if( ! I.lastdroptime ) {I.lastdroptime=0;}
     if( ! I.width ) {I.width=64;}
     if( ! I.height ) {I.height=64;}
@@ -313,6 +319,16 @@ function aBomb(I) {  //represents a keyboard button
     if( ! I.fuse ) {I.fuse=4;}
     if( ! I.active ) {I.active=false;}
     if( ! I.armed ) {I.armed=false;}
+	if( ! I.proxy ) {I.proxy=false;}
+	if( ! I.gravity) {I.gravity=false;}
+    if( ! I.flippers ) {I.flippers=false;}
+	I.key=new Array(10);
+	I.key[0]=false;
+	I.key[1]=false;
+	I.key[2]=false;
+	I.key[3]=false;
+	I.key[4]=false;
+	I.key[5]=false;
     I.arm= function(x,y){
 	I.timeplaced = milliseconds;
 	I.armed=true;
@@ -357,8 +373,12 @@ function aBomb(I) {  //represents a keyboard button
 	    I.active=false;
 	    I.explode();
 	}
-	
-		if( SideMode )
+		
+	I.x+=I.xv;
+	I.y+=I.yv;
+	if((!merp.canWalk(this,this.x,this.y)) || (!merp.canWalk(this,this.x+1,this.y)) ||(!merp.canWalk(this,this.x,this.y+1))||(!merp.canWalk(this,this.x+1,this.y+1))) {this.explode();}
+
+		if( (SideMode) && (I.gravity) )
 		{ //gravity
 			if( (!merp.canStand(this.x,this.y+2)) && 
 				(!merp.canStand(this.x+1,this.y+2)) ) {
@@ -658,8 +678,8 @@ var camera = {  //represents the camera, aka what part of the map is on screen
     }
 };
 
-function thing(tipe,px,py) {  //represents collectable objects
-    
+function thing(tipe,px,py,col) {  //represents collectable objects
+    if(!col) {col=true;}
     this.x= px;
     this.y= py;
     this.xVelocity=0;
@@ -671,6 +691,8 @@ function thing(tipe,px,py) {  //represents collectable objects
     this.width= 32;
     this.height= 32;
     this.name="Shroom";
+	this.collectable= col;
+	this.pushable=false;
     this.sprite= Sprite("shroom");
     if (this.type==1) {
 	this.sprite= Sprite("heart");
@@ -747,9 +769,14 @@ function thing(tipe,px,py) {  //represents collectable objects
     }else if (this.type==25) {
 	this.sprite= Sprite("stuffedbear");
 	this.name="Stuffed Bear";
+    }else if (this.type==26) {
+		this.sprite= Sprite("crate");
+		this.name="Crate";
+		this.collectable=false;
+		this.pushable=true;
     }
     
-    this.collectable= true;
+
     this.setSprite= function() {
 	if (this.type==1) {
 	    this.sprite= Sprite("heart");
@@ -826,6 +853,11 @@ function thing(tipe,px,py) {  //represents collectable objects
     }else if (this.type==25) {
 		this.sprite= Sprite("stuffedbear");
 		this.name="Stuffed Bear";
+    }else if (this.type==26) {
+		this.sprite= Sprite("crate");
+		this.name="Crate";
+		this.collectable=false;
+		this.pushable=true;
     }
     };
     this.draw= function(cam) {
@@ -840,7 +872,7 @@ function thing(tipe,px,py) {  //represents collectable objects
     };
     this.update=function(ply,merp) {
 	if(this.colision(ply)) { //TODO: hold over head ala zelda?
-	    this.active=false;
+	    if(this.collectable) {this.active=false;}
 	    if (this.type==0) {ply.heal(10); playSound("Item");}  //mushroom heals
 	    if (this.type==1) {
 		ply.maxhp+=20; ply.hp=ply.maxhp; playSound("HeartContainer");
@@ -932,9 +964,15 @@ function thing(tipe,px,py) {  //represents collectable objects
 		ply.hasbombs=true;
 		ply.bombs=100;
 		ply.sword=ironsword;
+		ply.doub
+		ply.fallfeather=true;
+		ply.haslauncher=true;
+		ply.hasbears=true;
+		ply.bears=3;
+		ply.doubljumpboots=true;
 		ply.dashboots=true;
 		ply.speed=10;
-		ply.fllipers=true;
+		ply.flippers=true;
 		ply.grabedsprite=this.sprite;
 		ply.key[0]=true;
 		ply.key[1]=true;
@@ -972,6 +1010,21 @@ function thing(tipe,px,py) {  //represents collectable objects
 		textPause=true;
 		ply.grabedsprite=this.sprite;
 		textText="You found the Launcher! Badass!";
+	    } 
+		if (this.type==26) {
+			//crate!  push it?
+			if (ply.dir==0){
+				this.y-=1;
+			}
+			if (ply.dir==1){
+				this.x+=1;
+			}
+			if (ply.dir==2){
+				this.y+=1;
+			}
+			if (ply.dir==3){
+				this.x-=1;
+			}
 	    } 
 	}
 	
@@ -1234,6 +1287,7 @@ var player = {  //the bear.
     color: "#00A",
     x: 22,
     y: 19,
+	aim:0,
 	haslauncher: false,
 	bears: 0,
 	hasbears: false,
@@ -1553,6 +1607,7 @@ var player = {  //the bear.
 				this.falling=milliseconds;
 			}
 			player.y+=1;
+			camera.center(this);
 			}else { 
 				if((this.falling) && (milliseconds-this.falling>FALL_DMG) && (!this.fallfeather)){
 					this.hurt(10);
@@ -1627,10 +1682,30 @@ var player = {  //the bear.
 	
 		
 	if(itemcyclekey.check()){
-	    this.curitem++;
-	    
-	    if(this.curitem>2){ 
-		this.curitem=0;
+	    if(this.curitem==0){ 
+			if(this.hasbears)
+			{
+				this.curitem=1;
+			}else if (this.haslauncher)
+			{
+				this.curitem=2
+			}
+	    }else if(this.curitem==1){ 
+			if(this.haslauncher)
+			{
+				this.curitem=2;
+			}else if (this.hasbombs)
+			{
+				this.curitem=0
+			}
+	    }else if(this.curitem==2){ 
+			if(this.hasbombs)
+			{
+				this.curitem=0;
+			}else if (this.hasbears)
+			{
+				this.curitem=1
+			}
 	    }
 	}
 	
@@ -1675,22 +1750,29 @@ var player = {  //the bear.
 	
 	
 	if(keydown.w) {
-	    this.dir=0;
+	    
 	    if ((this.y>0) && (this.x<MAP_WIDTH-1)
 		&& (merp.canWalk(this,[this.x],[this.y-1]))
 		&& (merp.canWalk(this,[this.x+1],[this.y-1])) ) {
-			if(!SideMode) {this.move(0,-1,merp);}
+			if(!SideMode) {this.dir=0; this.move(0,-1,merp);} else {this.aim=-1;}
 	    }
 	} 
 	if(keydown.a) {
+		this.aim=0;
 	    this.dir=3;
 	    if ((this.x>0) && (this.y<MAP_HEIGHT-1) && (merp.canWalk(this,[this.x-1],[this.y])) && (merp.canWalk(this,[this.x-1],[this.y+1]))) {this.move(-1,0,merp);}
 	}if(keydown.d) {
 	    this.dir=1;
+		this.aim=0;
 	    if ((this.y<MAP_HEIGHT-1) && (this.x<MAP_WIDTH-2) &&(merp.canWalk(this,[this.x+2],[this.y])) && (merp.canWalk(this,[this.x+2],[this.y+1]))) {this.move(1,0,merp);}
 	}if(keydown.s) {
-	    this.dir=2;
-	    if ((this.y<MAP_HEIGHT-2) && (this.x<MAP_WIDTH-1) && (merp.canWalk(this,[this.x],[this.y+2])) && (merp.canWalk(this,[this.x+1],[this.y+2]))) {this.move(0,1,merp);}
+		if(SideMode){
+			this.aim=1;
+		}else
+		{
+			this.dir=2;
+	    }
+		if ((this.y<MAP_HEIGHT-2) && (this.x<MAP_WIDTH-1) && (merp.canWalk(this,[this.x],[this.y+2])) && (merp.canWalk(this,[this.x+1],[this.y+2]))) {this.move(0,1,merp);}
 	}
 	this.x = this.x.clamp(0, MAP_WIDTH-1);
 	this.y = this.y.clamp(0, MAP_HEIGHT-1);
@@ -2262,6 +2344,7 @@ window.loadedMap = obj;
     };
     
     I.canWalk = function (ply,x,y) { //overhead + side mode
+	if((x<0) || (y<0) || (y>MAP_HEIGHT-1) || (x>MAP_WIDTH-1)) {return false;}
 	if ((I.walls[x][y].data >44)  && (I.walls[x][y].data <56) ){ //doors
 		if (ply.key[I.walls[x][y].data-45]) {
 		    playSound("unlock");
@@ -2414,7 +2497,7 @@ function Bullet(I) {  //player fired projectile
     I.checkHit= function(targ) {
 	tempx=I.x*16;
 	tempy=I.y*16;
-	if((tempx > targ.x*16) && (tempx <targ.x*16+targ.width) && (tempy > targ.y*16) && (tempy <targ.y*16+targ.height)) {
+	if((tempx+32	> targ.x*16) && (tempx <targ.x*16+targ.width) && (tempy+32 > targ.y*16) && (tempy <targ.y*16+targ.height)) {
 	    I.active=false;
 	    return true;
 	    
@@ -2899,7 +2982,11 @@ function update() {
 		}else if(edcursor.mode==1){
 		   // NPC mode?
 		}else if(edcursor.mode==2){
-		    stuff.push(new thing(edcursor.thingtrack,edcursor.x,edcursor.y));
+			if (edcursor.thingtrack==26){
+				stuff.push(new thing(edcursor.thingtrack,edcursor.x,edcursor.y,false));
+			}else{
+				stuff.push(new thing(edcursor.thingtrack,edcursor.x,edcursor.y));
+			}
 		}
 		
 		
@@ -3262,6 +3349,28 @@ player.placeBomb = function() {
 		fuse: 4,
 		x: this.x,
 		y: this.y,
+		proxy: false,
+		gravity: true,
+		timeplaced: ttimeplaced,
+		armed: true,
+		active: true
+	    }));
+    
+};
+
+player.placeMine = function() {
+    if (this.bombs<1) {return;}
+    this.bombs--;
+    //playSound("placebomb");
+    
+    ttimeplaced = milliseconds
+    
+    playerBombs.push(aBomb({ 
+		fuse: 400,
+		x: this.x,
+		y: this.y,
+		proxy: true,
+		gravity: true,
 		timeplaced: ttimeplaced,
 		armed: true,
 		active: true
@@ -3277,7 +3386,7 @@ player.placeDecoy = function() {
     ttimeplaced = milliseconds
     
     playerDecoys.push(aDecoy({ 
-		fuse: 10,
+		fuse: 12,
 		x: this.x,
 		y: this.y,
 		timeplaced: ttimeplaced,
@@ -3292,11 +3401,21 @@ player.launchBomb = function() {
     //playSound("placebomb");
     
     ttimeplaced = milliseconds
-    
+    var tar=0;
+	var mar=0;
+	if (this.dir==1) {tar=2;}
+	if (this.dir==3) {tar=-2;}
+	if (this.dir==0) {mar=-2;}
+	if (this.dir==2) {mar=2;}
+	if(SideMode) {mar+=this.aim;}
     playerBombs.push(aBomb({ 
 		fuse: 2,
 		x: this.x,
 		y: this.y,
+		xv: tar,
+		yv: mar,
+		proxy: true,
+		gravity: false,
 		timeplaced: ttimeplaced,
 		armed: true,
 		active: true
@@ -3449,7 +3568,15 @@ function updateBombedTiles(px,py,r,merp){
 }
 
 function handleCollisions() {
-    playerBullets.forEach(function(bullet) {
+    playerBombs.forEach(function(aBomb) {
+            enemies.forEach(function(enemy) {
+		    if(enemy.checkCollide(aBomb)) {
+				if(aBomb.proxy) {aBomb.explode();}
+		    }
+		});
+	});
+	
+	playerBullets.forEach(function(bullet) {
             enemies.forEach(function(enemy) {
 		    if(bullet.checkHit(enemy)) {
 			enemy.hurt(5);
@@ -3535,6 +3662,14 @@ player.draw = function(cam) {
 	{
 	    this.sprites[this.dir][this.ani].draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 	}
+	
+	if(this.curitem==2) { //draw launcher if equipped
+	if(this.dir==1){launcherrsprite.draw(canvas, (this.x-cam.x+1)*16-12, (this.y-cam.y+1)*16-6);}
+	if(this.dir==3){launcherlsprite.draw(canvas, (this.x-cam.x+1)*16-24, (this.y-cam.y+1)*16-6);}
+	if(this.dir==0){launcherusprite.draw(canvas, (this.x-cam.x+1)*16-16, (this.y-cam.y+1)*16-18);}
+	if(this.dir==2){launcherdsprite.draw(canvas, (this.x-cam.x+1)*16+2, (this.y-cam.y+1)*16-7);}
+	
+    }
     
     //cover player in grass if neccisary
     if(maps[0].walls[this.x][this.y+1].data==44) {
@@ -3579,7 +3714,6 @@ player.draw = function(cam) {
     if(Mouse.isOver(player,cam)) {drawmousetext(player,cam);}
     
 };
-
 
 
       //]]>
