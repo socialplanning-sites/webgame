@@ -170,7 +170,7 @@ var explosions = [];
 var edititems= [];
 
 var NUM_TILES=58; //numer of tile types
-var NUM_THINGS=25;
+var NUM_THINGS=26;
 var FROZE_DUR=2000;
 var JUMP_DIR=100;
 var JUMP_BEFORE_DOUBLEJUMP_DUR=100;
@@ -318,6 +318,13 @@ function aBomb(I) {  //represents a keyboard button
 	if( ! I.proxy ) {I.proxy=false;}
 	if( ! I.gravity) {I.gravity=false;}
     if( ! I.flippers ) {I.flippers=false;}
+	I.key=new Array(10);
+	I.key[0]=false;
+	I.key[1]=false;
+	I.key[2]=false;
+	I.key[3]=false;
+	I.key[4]=false;
+	I.key[5]=false;
     I.arm= function(x,y){
 	I.timeplaced = milliseconds;
 	I.armed=true;
@@ -667,8 +674,8 @@ var camera = {  //represents the camera, aka what part of the map is on screen
     }
 };
 
-function thing(tipe,px,py) {  //represents collectable objects
-    
+function thing(tipe,px,py,col) {  //represents collectable objects
+    if(!col) {col=true;}
     this.x= px;
     this.y= py;
     this.xVelocity=0;
@@ -680,6 +687,8 @@ function thing(tipe,px,py) {  //represents collectable objects
     this.width= 32;
     this.height= 32;
     this.name="Shroom";
+	this.collectable= col;
+	this.pushable=false;
     this.sprite= Sprite("shroom");
     if (this.type==1) {
 	this.sprite= Sprite("heart");
@@ -756,9 +765,14 @@ function thing(tipe,px,py) {  //represents collectable objects
     }else if (this.type==25) {
 	this.sprite= Sprite("stuffedbear");
 	this.name="Stuffed Bear";
+    }else if (this.type==26) {
+		this.sprite= Sprite("crate");
+		this.name="Crate";
+		this.collectable=false;
+		this.pushable=true;
     }
     
-    this.collectable= true;
+
     this.setSprite= function() {
 	if (this.type==1) {
 	    this.sprite= Sprite("heart");
@@ -835,6 +849,11 @@ function thing(tipe,px,py) {  //represents collectable objects
     }else if (this.type==25) {
 		this.sprite= Sprite("stuffedbear");
 		this.name="Stuffed Bear";
+    }else if (this.type==26) {
+		this.sprite= Sprite("crate");
+		this.name="Crate";
+		this.collectable=false;
+		this.pushable=true;
     }
     };
     this.draw= function(cam) {
@@ -849,7 +868,7 @@ function thing(tipe,px,py) {  //represents collectable objects
     };
     this.update=function(ply,merp) {
 	if(this.colision(ply)) { //TODO: hold over head ala zelda?
-	    this.active=false;
+	    if(this.collectable) {this.active=false;}
 	    if (this.type==0) {ply.heal(10); playSound("Item");}  //mushroom heals
 	    if (this.type==1) {
 		ply.maxhp+=20; ply.hp=ply.maxhp; playSound("HeartContainer");
@@ -981,6 +1000,21 @@ function thing(tipe,px,py) {  //represents collectable objects
 		textPause=true;
 		ply.grabedsprite=this.sprite;
 		textText="You found the Launcher! Badass!";
+	    } 
+		if (this.type==26) {
+			//crate!  push it?
+			if (ply.dir==0){
+				this.y-=1;
+			}
+			if (ply.dir==1){
+				this.x+=1;
+			}
+			if (ply.dir==2){
+				this.y+=1;
+			}
+			if (ply.dir==3){
+				this.x-=1;
+			}
 	    } 
 	}
 	
@@ -2272,7 +2306,7 @@ window.loadedMap = obj;
     
     I.canWalk = function (ply,x,y) { //overhead + side mode
 	if((x<0) || (y<0) || (y>MAP_HEIGHT-1) || (x>MAP_WIDTH-1)) {return false;}
-	if ((I.keys) &&(I.walls[x][y].data >44)  && (I.walls[x][y].data <56) ){ //doors
+	if ((I.walls[x][y].data >44)  && (I.walls[x][y].data <56) ){ //doors
 		if (ply.key[I.walls[x][y].data-45]) {
 		    playSound("unlock");
 		    return true;
@@ -2909,7 +2943,11 @@ function update() {
 		}else if(edcursor.mode==1){
 		   // NPC mode?
 		}else if(edcursor.mode==2){
-		    stuff.push(new thing(edcursor.thingtrack,edcursor.x,edcursor.y));
+			if (edcursor.thingtrack==26){
+				stuff.push(new thing(edcursor.thingtrack,edcursor.x,edcursor.y,false));
+			}else{
+				stuff.push(new thing(edcursor.thingtrack,edcursor.x,edcursor.y));
+			}
 		}
 		
 		
