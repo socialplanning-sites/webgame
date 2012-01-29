@@ -97,16 +97,19 @@ var MAP_HEIGHT = 80;
 var FPS = 30;
 var LAVA_RATE=2000;
 var WATER_RATE=1000;
+var BURN_RATE=100;
 var CHARANI_RATE= 200;
 var FALL_DMG=900;
 var SPAWN_X=22;
 var SPAWN_Y=19;
-var GRAVITY_RATE=10;
+var GRAVITY_RATE=5;
 //var keychart = ["w","a","d","s","up","right","down","left","m","n","shift"];
 
 var darkgrasssprite = Sprite("darkgrass"); //begin loading images.  Eventually I should put them all on one .png file
 var grasssprite = Sprite("grass");
 var watersprite = Sprite("water");
+var chutelsprite = Sprite("parachutel");
+var chutersprite = Sprite("parachuter");
 var lavasprite=[];
 lavasprite[0] = Sprite("lava");
 lavasprite[1] = Sprite("lava1");
@@ -157,6 +160,7 @@ var launcherlsprite= Sprite("launcherl");
 var launcherrsprite= Sprite("launcherr");
 var launcherusprite= Sprite("launcheru");
 var launcherdsprite= Sprite("launcherd");
+var fireshirtsprite= Sprite("redtunic");
 var explosionsprite=new Array(4);
 explosionsprite[0] =Sprite("explosion0");
 explosionsprite[1] =Sprite("explosion1");
@@ -174,7 +178,7 @@ var explosions = [];
 var edititems= [];
 
 var NUM_TILES=58; //numer of tile types
-var NUM_THINGS=26;
+var NUM_THINGS=30;
 var FROZE_DUR=2000;
 var JUMP_DIR=100;
 var JUMP_BEFORE_DOUBLEJUMP_DUR=100;
@@ -524,6 +528,10 @@ var upkey=new akey("w");
 var leftkey=new akey("a");
 var downkey=new akey("s");
 var rightkey=new akey("d");
+var aimupkey=new akey("i");
+var aimleftkey=new akey("j");
+var aimdownkey=new akey("k");
+var aimrightkey=new akey("l");
 var wkey=new akey("up");
 var dkey=new akey("right");
 var skey=new akey("down");
@@ -774,8 +782,19 @@ function thing(tipe,px,py,col) {  //represents collectable objects
 		this.name="Crate";
 		this.collectable=false;
 		this.pushable=true;
+    }else if (this.type==27) {
+	this.sprite= Sprite("parachutel");
+	this.name="Parachute";
+    }else if (this.type==28) {
+	this.sprite= Sprite("shovel");
+	this.name="Ed's Shovel";
+    }else if (this.type==29) {
+	this.sprite= Sprite("superbomb");
+	this.name="Super Bombs";
+    }else if (this.type==30) {
+	this.sprite= Sprite("redtunic");
+	this.name="Fire Shirt";
     }
-    
 
     this.setSprite= function() {
 	if (this.type==1) {
@@ -858,6 +877,18 @@ function thing(tipe,px,py,col) {  //represents collectable objects
 		this.name="Crate";
 		this.collectable=false;
 		this.pushable=true;
+    }else if (this.type==27) {
+		this.sprite= Sprite("parachutel");
+		this.name="Parachute";
+    }else if (this.type==28) {
+		this.sprite= Sprite("shovel");
+		this.name="Ed's Shovel";
+    }else if (this.type==29) {
+	this.sprite= Sprite("superbomb");
+	this.name="Super Bombs";
+    }else if (this.type==30) {
+	this.sprite= Sprite("redtunic");
+	this.name="Fire Shirt";
     }
     };
     this.draw= function(cam) {
@@ -931,6 +962,17 @@ function thing(tipe,px,py,col) {  //represents collectable objects
 		} 
 		
 	    } 
+		if (this.type==29) { //super bombs
+		if(ply.hassuperbombs){
+		    ply.supbombs+=2; playSound("Item");
+		}else {
+		    ply.hassuperbombs=true; ply.supbombs=10;  playSound("ItemFanfare");
+		    textPause=true;
+		    ply.grabedsprite=this.sprite;
+		    textText="You found the Super Bombs!  ...Super!";
+		} 
+		
+	    } 
 	    if (this.type==18) {
 		ply.hammer=true; playSound("ItemFanfare");
 		textPause=true;
@@ -956,6 +998,7 @@ function thing(tipe,px,py,col) {  //represents collectable objects
 	    if (this.type==21) {
 		ply.rumham=true; playSound("ItemFanfare");
 		textPause=true;
+		ply.chute=true;
 		ply.maxbombs=100;
 		ply.maxhp=300;
 		ply.maxmp=400;
@@ -964,12 +1007,15 @@ function thing(tipe,px,py,col) {  //represents collectable objects
 		ply.hasbombs=true;
 		ply.bombs=100;
 		ply.sword=ironsword;
-		ply.doub
+		ply.firetunic=true;
+		ply.shovel=true;
+		ply.hassuperbombs=true;
+		ply.supbombs=10;
 		ply.fallfeather=true;
 		ply.haslauncher=true;
 		ply.hasbears=true;
 		ply.bears=3;
-		ply.doubljumpboots=true;
+		ply.doublejumpboots=true;
 		ply.dashboots=true;
 		ply.speed=10;
 		ply.flippers=true;
@@ -1025,6 +1071,24 @@ function thing(tipe,px,py,col) {  //represents collectable objects
 			if (ply.dir==3){
 				this.x-=1;
 			}
+	    } 
+		if (this.type==27) {
+		ply.chute=true; playSound("ItemFanfare");
+		textPause=true;
+		ply.grabedsprite=this.sprite;
+		textText="You found the Parachute! Now you can move while falling!";
+	    } 
+		if (this.type==28) {
+		ply.shovel=true; playSound("ItemFanfare");
+		textPause=true;
+		ply.grabedsprite=this.sprite;
+		textText="You found Ed's Shovel!  You're not sure who Ed is but hey, free shovel!";
+	    } 
+		if (this.type==30) {
+		ply.firetunic=true; playSound("ItemFanfare");
+		textPause=true;
+		ply.grabedsprite=this.sprite;
+		textText="You found a Red Shirt!  Lets assume it's lava-proof!";
 	    } 
 	}
 	
@@ -1290,12 +1354,17 @@ var player = {  //the bear.
 	aim:0,
 	haslauncher: false,
 	bears: 0,
+	shovel: false,
+	firetunic: false,
 	hasbears: false,
     jumping: false,
 	falling: false,
 	fallfeather: false,
     doublejumping: false,
+	hassuperbombs: true,
+	supbombs: 10,
     doublejumpboots: false,
+	chute: false,
     dir: 2,
     selected: false,
     maxhp:100,
@@ -1329,6 +1398,7 @@ var player = {  //the bear.
     timelastmoved: 0,
     lastani: 0,
     lastdroptime: 0,
+	lastburn: 0,
     speed: 70,
     init: function () {  //load sprites
 	this.sword=nosword;
@@ -1432,6 +1502,9 @@ var player = {  //the bear.
 	}else if((player.curitem==2) && (player.haslauncher))
 	{
 		launchersprite.draw(canvas,734,24);
+	}else if((player.curitem==4) && (player.chute))
+	{
+		chutersprite.draw(canvas,734,24);
 	}
     },
     
@@ -1563,7 +1636,7 @@ var player = {  //the bear.
     
     
     update: function() {
-	
+
 	if(this.hp<1) {this.kill();}
 	if(this.sword.active){
 	    if(this.sword.going) {
@@ -1584,18 +1657,26 @@ var player = {  //the bear.
 		this.sword.track=0;
 		this.sword.active=false;
 	    }
-	    
-	    
+
 	    
 	}
 	
+		if (milliseconds-this.lastburn>BURN_RATE) {
+			this.lastburn=milliseconds;
+			if ((!this.firetunic) &&(this.tiletype==43)) {this.hurt(20);} //lava
+		}
+	
 	if( SideMode ) { //gravity
-	    if( milliseconds-this.lastdroptime>GRAVITY_RATE ) {
+		var tar=0;
+		if((this.chute) && (this.curitem==4)) {tar=70;}
+		if((this.tiletype==42) || (this.tiletype==43)) {tar=100;}
+	    if( milliseconds-this.lastdroptime>GRAVITY_RATE+tar ) {
 		if(( this.jumping ) || (this.doublejumping)) {
 		    if( (maps[0].canWalk(this, [this.x], [this.y-1])) && 
 			(maps[0].canWalk(this, [this.x+1], [this.y-1])) ) {
 			
-			player.y-=1;
+			this.y-=1;
+
 			this.falling=null;
 		    }
 		    if( milliseconds-this.jumping>JUMP_DIR ) {this.jumping = null; this.falling=milliseconds};//end !doublejumping.
@@ -1606,7 +1687,7 @@ var player = {  //the bear.
 			if(!this.falling){
 				this.falling=milliseconds;
 			}
-			player.y+=1;
+			this.y+=1;
 			camera.center(this);
 			}else { 
 				if((this.falling) && (milliseconds-this.falling>FALL_DMG) && (!this.fallfeather)){
@@ -1622,7 +1703,7 @@ var player = {  //the bear.
 	
 	if((this.frozen) && (milliseconds-this.frozetime>FROZE_DUR)){ this.frozen=false; }
 	
-	
+		this.tiletype=maps[0].walls[this.x][this.y].data;
 	
     },
     
@@ -1654,6 +1735,7 @@ var player = {  //the bear.
 	if (this.tiletype==42) {playSound("Swim");}
 	if (this.tiletype==44) {playSound("GrassWalk");}
 	if (this.tiletype==20) {this.hurt(3);} //poison ground
+
 	this.x+=px;
 	this.y+=py
 	this.timelastmoved=milliseconds;
@@ -1681,7 +1763,7 @@ var player = {  //the bear.
 	}
 	
 		
-	if(itemcyclekey.check()){
+	if(itemcyclekey.check()){  //better way to do this?
 	    if(this.curitem==0){ 
 			if(this.hasbears)
 			{
@@ -1689,22 +1771,44 @@ var player = {  //the bear.
 			}else if (this.haslauncher)
 			{
 				this.curitem=2
+			}else if (this.chute)
+			{
+				this.curitem=4
 			}
 	    }else if(this.curitem==1){ 
 			if(this.haslauncher)
 			{
 				this.curitem=2;
+			}else if (this.chute)
+			{
+				this.curitem=4
 			}else if (this.hasbombs)
 			{
 				this.curitem=0
 			}
 	    }else if(this.curitem==2){ 
+			
+			if (this.chute)
+			{
+				this.curitem=4
+			}else if(this.hasbombs)
+			{
+				this.curitem=0;
+			}else if (this.hasbears)
+			{
+				this.curitem=1
+			}
+	    }else if(this.curitem==4){ 
+			
 			if(this.hasbombs)
 			{
 				this.curitem=0;
 			}else if (this.hasbears)
 			{
 				this.curitem=1
+			}else if (this.haslauncher)
+			{
+				this.curitem=2
 			}
 	    }
 	}
@@ -1747,36 +1851,54 @@ var player = {  //the bear.
 		    }
 		} 
 	}
-	
-	
+	if(SideMode){
+	if(aimupkey.check()){
+		this.aim=-1;
+	}
+	if(aimdownkey.check()){
+		this.aim=+1;
+	}
+	}
+
 	if(keydown.w) {
 	    
 	    if ((this.y>0) && (this.x<MAP_WIDTH-1)
 		&& (merp.canWalk(this,[this.x],[this.y-1]))
 		&& (merp.canWalk(this,[this.x+1],[this.y-1])) ) {
-			if(!SideMode) {this.dir=0; this.move(0,-1,merp);} else {this.aim=-1;}
+			if(!SideMode) {this.dir=0; this.move(0,-1,merp);} 
 	    }
 	} 
 	if(keydown.a) {
-		this.aim=0;
 	    this.dir=3;
-	    if ((this.x>0) && (this.y<MAP_HEIGHT-1) && (merp.canWalk(this,[this.x-1],[this.y])) && (merp.canWalk(this,[this.x-1],[this.y+1]))) {this.move(-1,0,merp);}
+		var movefall=(((!this.chute)||(this.curitem!=4))&& (this.falling) && (!this.jumping) && (!this.doublejumping));
+	    if ((!movefall)&&(this.x>0) && (this.y<MAP_HEIGHT-1) && (merp.canWalk(this,[this.x-1],[this.y])) && (merp.canWalk(this,[this.x-1],[this.y+1]))) {this.move(-1,0,merp);}
 	}if(keydown.d) {
 	    this.dir=1;
-		this.aim=0;
-	    if ((this.y<MAP_HEIGHT-1) && (this.x<MAP_WIDTH-2) &&(merp.canWalk(this,[this.x+2],[this.y])) && (merp.canWalk(this,[this.x+2],[this.y+1]))) {this.move(1,0,merp);}
+		movefall=(((!this.chute)||(this.curitem!=4)) && (this.falling) && (!this.jumping) && (!this.doublejumping));
+	    if ( (!movefall)&&(this.y<MAP_HEIGHT-1) && (this.x<MAP_WIDTH-2) &&(merp.canWalk(this,[this.x+2],[this.y])) && (merp.canWalk(this,[this.x+2],[this.y+1]))) {this.move(1,0,merp);}
 	}if(keydown.s) {
-		if(SideMode){
-			this.aim=1;
-		}else
-		{
+
 			this.dir=2;
-	    }
-		if ((this.y<MAP_HEIGHT-2) && (this.x<MAP_WIDTH-1) && (merp.canWalk(this,[this.x],[this.y+2])) && (merp.canWalk(this,[this.x+1],[this.y+2]))) {this.move(0,1,merp);}
+	if ((this.y<MAP_HEIGHT-2) && (this.x<MAP_WIDTH-1) && (merp.canWalk(this,[this.x],[this.y+2])) && (merp.canWalk(this,[this.x+1],[this.y+2]))) {this.move(0,1,merp);}
 	}
+	
+	if((!SideMode) &&(keydown.i)){
+		this.dir=0;
+	}
+	if(keydown.l){
+		this.dir=1;
+	}if((!SideMode) &&(keydown.k)){
+		this.dir=2;
+	}
+	if(keydown.j){
+		this.dir=3;
+	}
+	
 	this.x = this.x.clamp(0, MAP_WIDTH-1);
 	this.y = this.y.clamp(0, MAP_HEIGHT-1);
     }   
+		
+
     
 };
 
@@ -2356,6 +2478,8 @@ window.loadedMap = obj;
 		
 	}else if ((I.walls[x][y].data ==42)  && (ply.flippers)) { //water
 	    return true;
+	}else if ((I.walls[x][y].data ==43)  && (ply.firetunic)) { //lava
+	    return true;
 	}else if (I.walls[x][y].data <41) { //no wall
 	    return true;
 	}else if (I.walls[x][y].data ==44) { return true;} //bushes
@@ -2856,6 +2980,7 @@ function update() {
     
     if(testkey.check()) {
 	SideMode=!SideMode;
+	if(!SideMode) {player.falling=null; player.jumping=null; player.doublejumping=null;}
     }
     
     if (milliseconds-lastani>LAVA_RATE) {
@@ -3670,6 +3795,19 @@ player.draw = function(cam) {
 	if(this.dir==2){launcherdsprite.draw(canvas, (this.x-cam.x+1)*16+2, (this.y-cam.y+1)*16-7);}
 	
     }
+	
+	if((this.falling) && (this.chute) && (this.curitem==4)){
+		if(player.dir<3)
+		{
+			chutersprite.draw(canvas, (this.x-cam.x+1)*16-14, (this.y-cam.y+1)*16-34);
+		}else {
+			chutelsprite.draw(canvas, (this.x-cam.x+1)*16-14, (this.y-cam.y+1)*16-34)
+		}
+	}
+	
+	if(player.firetunic){ //todo enable.
+		//fireshirtsprite[this.dir].draw(canvas, (this.x-cam.x+1)*16-18, (this.y-cam.y+1)*16-6)
+	}
     
     //cover player in grass if neccisary
     if(maps[0].walls[this.x][this.y+1].data==44) {
