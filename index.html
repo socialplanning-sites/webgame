@@ -126,6 +126,9 @@ var stonesprite = Sprite("stone");
 var reddoorsprite = Sprite("reddoor");
 var greendoorsprite = Sprite("greendoor");
 var bluedoorsprite = Sprite("bluedoor");
+var yellowdoorsprite = Sprite("yellowdoor");
+var purpledoorsprite = Sprite("purpledoor");
+var lightbluedoorsprite = Sprite("lightbluedoor");
 var claysprite = Sprite("clay");
 var pedastalsprite = Sprite("pedastal");
 var wtfsprite = Sprite("wtf");
@@ -138,6 +141,9 @@ var halfheartsprite = Sprite("halfheart");
 var redkeysprite= Sprite("redkey");
 var greenkeysprite= Sprite("greenkey");
 var bluekeysprite= Sprite("bluekey");
+var yellowkeysprite= Sprite("yellowkey");
+var purplekeysprite= Sprite("purplekey");
+var lightbluekeysprite= Sprite("lightbluekey");
 var goldsprite =Sprite("gold");
 var bombsprite =Sprite("bomb");
 var redbombsprite =Sprite("redbomb");
@@ -161,7 +167,7 @@ var explosions = [];
 var edititems= [];
 
 var NUM_TILES=58; //numer of tile types
-var NUM_THINGS=23;
+var NUM_THINGS=25;
 var FROZE_DUR=2000;
 var JUMP_DIR=100;
 var JUMP_BEFORE_DOUBLEJUMP_DUR=100;
@@ -647,7 +653,16 @@ function thing(tipe,px,py) {  //represents collectable objects
     }else if (this.type==9) {
 	this.sprite= Sprite("greenkey");
 	this.name="Green Key";
-    }else if (this.type==13) {
+    }else if (this.type==10) {
+	    this.sprite= Sprite("yellowkey");
+	    this.name="Yellow Key";
+	}else if (this.type==11) {
+	    this.sprite= Sprite("purplekey");
+	    this.name="Purple Key";
+	}else if (this.type==12) {
+	    this.sprite= Sprite("lightbluekey");
+	    this.name="Light Blue Key";
+	}else if (this.type==13) {
 	this.sprite= Sprite("woodensword");
 	this.name="Wooden Sword";
     }else if (this.type==14) {
@@ -680,6 +695,12 @@ function thing(tipe,px,py) {  //represents collectable objects
     }else if (this.type==23) {
 	this.sprite= Sprite("feather");
 	this.name="Fall Feather";
+    }else if (this.type==24) {
+	this.sprite= Sprite("launcher");
+	this.name="Bomb Launcher";
+    }else if (this.type==25) {
+	this.sprite= Sprite("stuffedbear");
+	this.name="Stuffed Bear";
     }
     
     this.collectable= true;
@@ -711,6 +732,15 @@ function thing(tipe,px,py) {  //represents collectable objects
 	}else if (this.type==9) {
 	    this.sprite= Sprite("greenkey");
 	    this.name="Green Key";
+	}else if (this.type==10) {
+	    this.sprite= Sprite("yellowkey");
+	    this.name="Yellow Key";
+	}else if (this.type==11) {
+	    this.sprite= Sprite("purplekey");
+	    this.name="Purple Key";
+	}else if (this.type==12) {
+	    this.sprite= Sprite("lightbluekey");
+	    this.name="Light Blue Key";
 	}else if (this.type==13) {
 	    this.sprite= Sprite("woodensword");
 	    this.name="Wooden Sword";
@@ -744,6 +774,12 @@ function thing(tipe,px,py) {  //represents collectable objects
     }else if (this.type==23) {
 		this.sprite= Sprite("feather");
 		this.name="Fall Feather";
+    }else if (this.type==24) {
+		this.sprite= Sprite("launcher");
+		this.name="Bomb Launcher";
+    }else if (this.type==25) {
+		this.sprite= Sprite("stuffedbear");
+		this.name="Stuffed Bear";
     }
     };
     this.draw= function(cam) {
@@ -779,6 +815,9 @@ function thing(tipe,px,py) {  //represents collectable objects
 	    if (this.type==7) {ply.key[0]=true;playSound("Key"); }  //redkey
 	    if (this.type==8) {ply.key[1]=true; playSound("Key");} //blue key
 	    if (this.type==9) {ply.key[2]=true; playSound("Key");} //green key
+		if (this.type==10) {ply.key[3]=true;playSound("Key"); }  //yellowkey
+	    if (this.type==11) {ply.key[4]=true; playSound("Key");} //purple key
+	    if (this.type==12) {ply.key[5]=true; playSound("Key");} //light blue key
 	    if (this.type==13) {
 		ply.sword=woodsword; playSound("ItemFanfare");
 		textPause=true;
@@ -854,6 +893,9 @@ function thing(tipe,px,py) {  //represents collectable objects
 		ply.key[0]=true;
 		ply.key[1]=true;
 		ply.key[2]=true;
+		ply.key[3]=true;
+		ply.key[4]=true;
+		ply.key[5]=true;
 		textText="You found the Rum Ham!  Looks like you'll be getting HAMmered tonight!";
 	    } //boots
 		if (this.type==22) {
@@ -868,6 +910,23 @@ function thing(tipe,px,py) {  //represents collectable objects
 		ply.grabedsprite=this.sprite;
 		textText="You found the Fall Feather! now you don't take fall damage!";
 	    } //fall feather
+		if (this.type==25) { //stuffed bears
+		if(ply.hasbears){
+		    ply.bears+=1; playSound("Item");
+		}else {
+		    ply.hasbears=true; ply.bears=2;  playSound("ItemFanfare");
+		    textPause=true;
+		    ply.grabedsprite=this.sprite;
+		    textText="You found a Stuffed Bear! It looks just like you!";
+		} 
+		
+	    } 
+		if (this.type==24) {
+		ply.haslauncher=true; playSound("ItemFanfare");
+		textPause=true;
+		ply.grabedsprite=this.sprite;
+		textText="You found the Launcher! Badass!";
+	    } 
 	}
 	
 	if( SideMode )
@@ -933,6 +992,12 @@ function makeNewTile() { //the Map is made of a 2D array of tiles.
 		bluedoorsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 	    }else if(this.data==47){
 		greendoorsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+	    }else if(this.data==48){ 
+		yellowdoorsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+	    }else if(this.data==49){
+		purpledoorsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+	    }else if(this.data==50){
+		lightbluedoorsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 	    }else if(this.data==44){
 		darkgrasssprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 	    }else if(this.data==43){
@@ -1123,6 +1188,9 @@ var player = {  //the bear.
     color: "#00A",
     x: 22,
     y: 19,
+	haslauncher: false,
+	bears: 0,
+	hasbears: false,
     jumping: false,
 	falling: false,
 	fallfeather: false,
@@ -1235,6 +1303,15 @@ var player = {  //the bear.
 	}
 	if(this.key[2]){
 	    greenkeysprite.draw(canvas,7,40);
+	}
+	if(this.key[3]){
+	    yellowkeysprite.draw(canvas,25,40);
+	}
+	if(this.key[4]){
+	    purplekeysprite.draw(canvas,7,60);
+	}
+	if(this.key[5]){
+	    lightbluekeysprite.draw(canvas,25,60);
 	}
 	
 	goldsprite.draw(canvas,655,25);
@@ -1594,6 +1671,12 @@ var edcursor = { //edit cursor
 		bluedoorsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 	    }else if(this.type==47){
 		greendoorsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+	    }else if(this.type==48){ 
+		yellowdoorsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+	    }else if(this.type==49){
+		purpledoorsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
+	    }else if(this.type==50){
+		lightbluedoorsprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 	    }else if(this.type==44){
 		darkgrasssprite.draw(canvas, (this.x-cam.x)*16, (this.y-cam.y)*16);
 	    }else if(this.type==43){
