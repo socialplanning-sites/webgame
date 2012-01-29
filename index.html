@@ -152,6 +152,7 @@ var crackedsprite =Sprite("cracked");
 var platformsprite =Sprite("plat");
 var icesprite =Sprite("frozen");
 var decoysprite =Sprite("stuffedbear");
+var launchersprite= Sprite("launcher");
 var explosionsprite=new Array(4);
 explosionsprite[0] =Sprite("explosion0");
 explosionsprite[1] =Sprite("explosion1");
@@ -1367,6 +1368,17 @@ var player = {  //the bear.
 	canvas.fillStyle = "white";
 	if(player.cash==player.maxcash) {canvas.fillStyle = "blue";}
 	canvas.fillText(":" + player.cash, 670, 32);
+	canvas.fillText("Item:", 700, 32);
+	if((player.curitem==0) && (player.hasbombs))
+	{
+		bombsprite.draw(canvas,734,24);
+	}else if((player.curitem==1) &&(player.hasbears))
+	{
+		decoysprite.draw(canvas,734,24);
+	}else if((player.curitem==2) && (player.haslauncher))
+	{
+		launchersprite.draw(canvas,734,24);
+	}
     },
     
     drawHearts: function() {
