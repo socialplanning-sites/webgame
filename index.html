@@ -315,6 +315,8 @@ function aBomb(I) {  //represents a keyboard button
     if( ! I.fuse ) {I.fuse=4;}
     if( ! I.active ) {I.active=false;}
     if( ! I.armed ) {I.armed=false;}
+	if( ! I.proxy ) {I.proxy=false;}
+	if( ! I.gravity) {I.gravity=false;}
     if( ! I.flippers ) {I.flippers=false;}
     I.arm= function(x,y){
 	I.timeplaced = milliseconds;
@@ -363,9 +365,9 @@ function aBomb(I) {  //represents a keyboard button
 		
 	I.x+=I.xv;
 	I.y+=I.yv;
-	if(!merp.canWalk(this,this.x,this.y)) {this.explode();}
+	if((!merp.canWalk(this,this.x,this.y)) || (!merp.canWalk(this,this.x+1,this.y)) ||(!merp.canWalk(this,this.x,this.y+1))||(!merp.canWalk(this,this.x+1,this.y+1))) {this.explode();}
 
-		if( SideMode )
+		if( (SideMode) && (I.gravity) )
 		{ //gravity
 			if( (!merp.canStand(this.x,this.y+2)) && 
 				(!merp.canStand(this.x+1,this.y+2)) ) {
@@ -2270,7 +2272,7 @@ window.loadedMap = obj;
     
     I.canWalk = function (ply,x,y) { //overhead + side mode
 	if((x<0) || (y<0) || (y>MAP_HEIGHT-1) || (x>MAP_WIDTH-1)) {return false;}
-	if ((I.walls[x][y].data >44)  && (I.walls[x][y].data <56) ){ //doors
+	if ((I.keys) &&(I.walls[x][y].data >44)  && (I.walls[x][y].data <56) ){ //doors
 		if (ply.key[I.walls[x][y].data-45]) {
 		    playSound("unlock");
 		    return true;
@@ -2422,7 +2424,7 @@ function Bullet(I) {  //player fired projectile
     I.checkHit= function(targ) {
 	tempx=I.x*16;
 	tempy=I.y*16;
-	if((tempx > targ.x*16) && (tempx <targ.x*16+targ.width) && (tempy > targ.y*16) && (tempy <targ.y*16+targ.height)) {
+	if((tempx+32	> targ.x*16) && (tempx <targ.x*16+targ.width) && (tempy+32 > targ.y*16) && (tempy <targ.y*16+targ.height)) {
 	    I.active=false;
 	    return true;
 	    
@@ -3270,6 +3272,8 @@ player.placeBomb = function() {
 		fuse: 4,
 		x: this.x,
 		y: this.y,
+		proxy: false,
+		gravity: true,
 		timeplaced: ttimeplaced,
 		armed: true,
 		active: true
@@ -3306,13 +3310,15 @@ player.launchBomb = function() {
 	if (this.dir==3) {tar=-2;}
 	if (this.dir==0) {mar=-2;}
 	if (this.dir==2) {mar=2;}
-	if(SideMode) {mar+=2;}
+	//if(SideMode) {mar-=1;}
     playerBombs.push(aBomb({ 
 		fuse: 2,
 		x: this.x,
 		y: this.y,
 		xv: tar,
 		yv: mar,
+		proxy: true,
+		gravity: false,
 		timeplaced: ttimeplaced,
 		armed: true,
 		active: true
@@ -3465,7 +3471,15 @@ function updateBombedTiles(px,py,r,merp){
 }
 
 function handleCollisions() {
-    playerBullets.forEach(function(bullet) {
+    playerBombs.forEach(function(aBomb) {
+            enemies.forEach(function(enemy) {
+		    if(enemy.checkCollide(aBomb)) {
+				if(aBomb.proxy) {aBomb.explode();}
+		    }
+		});
+	});
+	
+	playerBullets.forEach(function(bullet) {
             enemies.forEach(function(enemy) {
 		    if(bullet.checkHit(enemy)) {
 			enemy.hurt(5);
