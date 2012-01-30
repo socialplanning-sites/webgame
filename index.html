@@ -180,7 +180,7 @@ var edititems= [];
 var NUM_TILES=58; //numer of tile types
 var NUM_THINGS=30;
 var FROZE_DUR=2000;
-var JUMP_DIR=100;
+var JUMP_DUR=100;
 var JUMP_BEFORE_DOUBLEJUMP_DUR=100;
 
 var canvasElement = $("<canvas width='" + CANVAS_WIDTH + 
@@ -251,6 +251,7 @@ function aExplosion(I) {  //represents a keyboard button
 	explosionsprite[I.ani].draw(canvas, (I.x-cam.x)*16, (I.y-cam.y)*16);
     };
     I.update =function() {
+	if(Mode==1) {return;}
 	if((milliseconds-I.timedet>I.duration*1000) && (I.active)){
 	    I.active=false;
 	}
@@ -292,7 +293,7 @@ function aDecoy(I) {  //represents a keyboard button
     };
     
     I.update= function(merp){
-	
+		if(Mode==1) {return;}
 	if((milliseconds-I.timeplaced>I.fuse*1000) ){
 	    I.kill();	
 	}
@@ -372,7 +373,7 @@ function aBomb(I) {  //represents a keyboard button
     };
     
     I.update= function(merp){
-	
+	if(Mode==1) {return;}
 	if((milliseconds-I.timeplaced>I.fuse*1000) && (I.armed)){
 	    I.active=false;
 	    I.explode();
@@ -617,6 +618,9 @@ function buildMapFromJunk(tempstring){
     Wizard.x=parseInt(tempstring[4]);
     Wizard.y=parseInt(tempstring[5]);
     SideMode = (tempstring[6] == "true");
+	player.x=SPAWN_X;
+	player.y=SPAWN_Y;
+	camera.center(player);
 };
 
 
@@ -902,6 +906,7 @@ function thing(tipe,px,py,col) {  //represents collectable objects
 	return false;
     };
     this.update=function(ply,merp) {
+	if(Mode==1) {return;}
 	if(this.colision(ply)) { //TODO: hold over head ala zelda?
 	    if(this.collectable) {this.active=false;}
 	    if (this.type==0) {ply.heal(10); playSound("Item");}  //mushroom heals
@@ -1270,10 +1275,11 @@ var Smedly = { //the first boss, currently has no AI
     
     update: function(merp) {
 	//todo: Smedly AI
+	if(Mode==1) {return;}
 	if( SideMode )
 	{ //gravity
-		if( (!merp.canStand(this.x,this.y+2)) && 
-			(!merp.canStand(this.x+1,this.y+2)) ) {
+		if( (!merp.canStand(this.x,this.y+10)) && 
+			(!merp.canStand(this.x+1,this.y+10)) ) {
 				this.y+=1;
 			}
 			this.lastdroptime=milliseconds;
@@ -1359,6 +1365,7 @@ var player = {  //the bear.
 	hasbears: false,
     jumping: false,
 	falling: false,
+	jumpfalling:false,
 	fallfeather: false,
     doublejumping: false,
 	hassuperbombs: true,
@@ -1459,7 +1466,7 @@ var player = {  //the bear.
 	canvas.fillText(player.doublejumping,145, 140);	
 	
 	canvas.fillText("falling?",60, 160);	
-	canvas.fillText(player.falling,145, 160);	
+	canvas.fillText(player.jumpfalling,145, 160);	
 	
 	
 	canvas.fillStyle = "#5F9EA0";
@@ -1636,7 +1643,7 @@ var player = {  //the bear.
     
     
     update: function() {
-
+	if(Mode==1) {return;}
 	if(this.hp<1) {this.kill();}
 	if(this.sword.active){
 	    if(this.sword.going) {
@@ -1678,11 +1685,13 @@ var player = {  //the bear.
 			this.y-=1;
 
 			this.falling=null;
+			this.jumpfalling=null;
 		    }
-		    if( milliseconds-this.jumping>JUMP_DIR ) {this.jumping = null; this.falling=milliseconds};//end !doublejumping.
-		    if((this.doublejumping)  && (milliseconds-this.doublejumping>JUMP_DIR )) this.doublejumping = null;
+		    if( milliseconds-this.jumping>JUMP_DUR ) {this.jumping = null; this.jumpfalling=milliseconds; this.falling=milliseconds};//end !doublejumping.
+		    if((this.doublejumping)  && (milliseconds-this.doublejumping>JUMP_DUR )) {this.doublejumping = null; this.jumpfalling=milliseconds;}//-JUM_DUR;}
 		} else {
-		    if( (!maps[0].canStand(this.x,this.y+2)) && 
+		    if( milliseconds-this.jumpfalling>JUMP_DUR ) {this.jumpfalling=null;} //
+			if( (!maps[0].canStand(this.x,this.y+2)) && 
 			(!maps[0].canStand(this.x+1,this.y+2)) ) {
 			if(!this.falling){
 				this.falling=milliseconds;
@@ -1846,6 +1855,8 @@ var player = {  //the bear.
 			
 		    } else if (((this.jumping)|| (this.falling)) && (!this.doublejumped) &&(!this.doublejumping) && (this.doublejumpboots) && (milliseconds-this.jumping>JUMP_BEFORE_DOUBLEJUMP_DUR) ) {
 			this.doublejumping=milliseconds;
+			this.falling=null; //
+			this.jumpfalling=null;
 			this.doublejumped=true;
 			playSound("jump");
 		    }
@@ -1857,6 +1868,12 @@ var player = {  //the bear.
 	}
 	if(aimdownkey.check()){
 		this.aim=+1;
+	}
+	if(aimleftkey.check()){
+		this.aim=0;
+	}
+	if(aimrightkey.check()){
+		this.aim=0;
 	}
 	}
 
@@ -1870,11 +1887,11 @@ var player = {  //the bear.
 	} 
 	if(keydown.a) {
 	    this.dir=3;
-		var movefall=(((!this.chute)||(this.curitem!=4))&& (this.falling) && (!this.jumping) && (!this.doublejumping));
+		var movefall=(((!this.chute)||(this.curitem!=4))&& (this.falling) && (!this.jumping) && (!this.doublejumping) &&(!this.jumpfalling));
 	    if ((!movefall)&&(this.x>0) && (this.y<MAP_HEIGHT-1) && (merp.canWalk(this,[this.x-1],[this.y])) && (merp.canWalk(this,[this.x-1],[this.y+1]))) {this.move(-1,0,merp);}
 	}if(keydown.d) {
 	    this.dir=1;
-		movefall=(((!this.chute)||(this.curitem!=4)) && (this.falling) && (!this.jumping) && (!this.doublejumping));
+		movefall=(((!this.chute)||(this.curitem!=4)) && (this.falling) && (!this.jumping) && (!this.doublejumping)&&(!this.jumpfalling));
 	    if ( (!movefall)&&(this.y<MAP_HEIGHT-1) && (this.x<MAP_WIDTH-2) &&(merp.canWalk(this,[this.x+2],[this.y])) && (merp.canWalk(this,[this.x+2],[this.y+1]))) {this.move(1,0,merp);}
 	}if(keydown.s) {
 
@@ -2086,6 +2103,7 @@ function Map(I) { //map object
     I.height = MAP_HEIGHT;
 
     I.update = function() {
+	  if(Mode==1) {return;}
       if( SideMode ) {
         this.updateFluids();
       }
@@ -2434,7 +2452,7 @@ function Map(I) { //map object
 	}
     };
 
-    I.loadMapFromServer = function(url) {
+    I.loadMapFromServer = function(url,ply) {
 	    maps[0].clear();
 	    var callback = function(data) {
 		var obj = data;
@@ -2454,6 +2472,8 @@ window.loadedMap = obj;
 		buildMapFromLoadedSpawners('', spawners);
 		buildMapFromJunk( junk);
 	    }
+
+
 	    $.getJSON("http://server.webgame.zebra-associates.org/"+url+"?callback=?", callback);
     };
 	
@@ -2600,6 +2620,7 @@ function Bullet(I) {  //player fired projectile
     };
     
     I.update = function(merp) {
+	if(Mode==1) {return;}
 	if(I.wavy) {
 	    I.xVelocity=2 * Math.sin(I.age * Math.PI / 64)/4;
 	}
@@ -2719,6 +2740,7 @@ function EnemySpawner(I) {  //todo: add more enemy types.
     };
     
     I.update = function() {
+	if(Mode==1) {return;}
 	if(I.numspawned<I.spawnlimit){
 	    if(milliseconds-I.timelastspawned>I.spawnrate*1000)
 		{
@@ -2891,6 +2913,7 @@ function Enemy(I) {  //todo: add more enemy types.
     };
     
     I.update = function(merp) {
+	if(Mode==1) {return;}
 	if( SideMode )
 		{ //gravity
 			if( (!merp.canStand(this.x,this.y+2)) && 
